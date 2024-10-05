@@ -1,0 +1,23 @@
+[
+  {
+    "id": 1,
+    "name": "Skin Treatment",
+    "description": "test",
+    "created_at": "2024-01-01",
+    "appointmentColor": "#2ecc71"
+  },
+  {
+    "id": 2,
+    "name": "Hair and Styling",
+    "description": "test",
+    "created_at": "2024-01-01",
+    "appointmentColor": "#9b59b6"
+  },
+  {
+    "id": 3,
+    "name": "Nail",
+    "description": "test",
+    "created_at": "2024-01-01",
+    "appointmentColor": "#e67e22"
+  }
+]

@@ -1,0 +1,47 @@
+[
+  {
+    "id": "1727876925323",
+    "title": "Haircut Shelly Gonzalez",
+    "start": "2024-09-29T16:00:00.000Z",
+    "end": "2024-09-29T17:00:00.000Z",
+    "clientID": "7d441a08-73c9-43f7-850c-e8426d4e71dd",
+    "backgroundColor": "#1f84d1",
+    "selectedBackgroundColor": "#1f84d1"
+  },
+  {
+    "id": "1727876936945",
+    "title": "Spa Christopher Martin",
+    "start": "2024-09-29T18:00:00.000Z",
+    "end": "2024-09-29T19:00:00.000Z",
+    "clientID": "1154428a-b375-47de-8b95-7694766d2c60",
+    "backgroundColor": "#1f4dd6",
+    "selectedBackgroundColor": "#1f4dd6"
+  },
+  {
+    "id": "1727876949460",
+    "title": "mani pedi Katelyn Huffman",
+    "start": "2024-09-30T17:30:00.000Z",
+    "end": "2024-09-30T18:30:00.000Z",
+    "clientID": "0c59f350-4142-4ce1-89d8-6db0e781988c",
+    "backgroundColor": "#20ac43",
+    "selectedBackgroundColor": "#20ac43"
+  },
+  {
+    "id": "1727876967400",
+    "title": "Diamond peel Cathy Ramirez",
+    "start": "2024-09-30T20:00:00.000Z",
+    "end": "2024-10-01T20:00:00.000Z",
+    "clientID": "34544493-c247-4ca5-8991-96e4ad6d115d",
+    "backgroundColor": "#e89292",
+    "selectedBackgroundColor": "#e89292"
+  },
+  {
+    "id": "1727876985220",
+    "title": "Rebond Angela Taylor",
+    "start": "2024-10-01T21:00:00.000Z",
+    "end": "2024-10-01T21:30:00.000Z",
+    "clientID": "1cbba77c-bb5f-4328-b621-b87e11ab51c9",
+    "backgroundColor": "#3ed0c7",
+    "selectedBackgroundColor": "#3ed0c7"
+  }
+]

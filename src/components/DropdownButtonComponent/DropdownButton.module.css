@@ -1,0 +1,77 @@
+/* Custom scrollbar styles */
+.customScrollbar::-webkit-scrollbar {
+    width: 10px;
+    height: 10px; /* For horizontal scrollbar */
+}
+
+.customScrollbar::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+.customScrollbar::-webkit-scrollbar-thumb {
+    background: linear-gradient(45deg, #6b7280, #9ca3af);
+    border-radius: 10px;
+}
+
+.customScrollbar::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(45deg, #4b5563, #6b7280);
+}
+
+.customScrollbar::-webkit-scrollbar-corner {
+    background: #f1f1f1; /* Color of the corner piece where both scrollbars meet */
+}
+
+/* To ensure the scrollbar is visible in all modern browsers */
+.customScrollbar {
+    scrollbar-width: thin; /* Firefox */
+    scrollbar-color: #6b7280 #f1f1f1; /* Firefox */
+}
+
+/* General styles for custom scrollbar */
+.customScrollbar::-moz-scrollbar {
+    width: 10px;
+}
+
+.customScrollbar::-moz-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+.customScrollbar::-moz-scrollbar-thumb {
+    background: linear-gradient(45deg, #6b7280, #9ca3af);
+    border-radius: 10px;
+}
+
+.customScrollbar::-moz-scrollbar-thumb:hover {
+    background: linear-gradient(45deg, #4b5563, #6b7280);
+}
+.drpBtn {
+    align-items: center;
+    background-color: #2ecc71;
+    border: 2px solid #27ae60;
+    box-sizing: border-box;
+    color: #fff;
+    cursor: pointer;
+    display: inline-flex;
+    fill: #000;
+    font-family: Inter, sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    height: 40px;
+    justify-content: center;
+    letter-spacing: -0.8px;
+    line-height: 24px;
+    outline: 0;
+    padding: 0 12px;
+    text-align: center;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+    border-radius: 0;
+}
+.drpBtn:hover {
+    background-color: #27ae60;
+    border-color: #27ae60;
+    fill: #2ecc71;
+}

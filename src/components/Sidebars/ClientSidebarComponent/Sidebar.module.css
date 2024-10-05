@@ -1,0 +1,25 @@
+.pageLabel {
+    font-weight: 600;
+    font-size: 18px;
+}
+.navButtonHover {
+    transition: background-color 0.2s;
+}
+
+.navButtonHover:hover {
+    background-color: #f6f6f6;
+}
+
+.activeButton {
+    background-color: #eefaf1;
+    color: #333;
+    padding: 0.5rem 1rem;
+    border-radius: 0rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.activeButton:hover {
+    background-color: #d1e3dd;
+}

@@ -1,0 +1,6 @@
+[
+  { "label": "Service pricing", "value": "sp" },
+  { "label": "Custom Pricing", "value": "cp" },
+  { "label": "Percentage Discount", "value": "pd" },
+  { "label": "Free", "value": "f" }
+]

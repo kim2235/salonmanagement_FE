@@ -1,0 +1,29 @@
+.fc .fc-button {
+    background-color: #52a46f !important; /* Custom button color */
+    color: white !important;             /* Custom button text color */
+    border: none !important;
+    border-radius: 4px !important;
+    padding: 5px 10px !important;
+    margin: 10px 10px;
+}
+
+.fc .fc-button:hover {
+    background-color: #52a46f !important; /* Change button color on hover */
+}
+
+.fc-toolbar-title {
+    font-size: 24px !important;          /* Custom title font size */
+    color: #343a40 !important;           /* Custom title color */
+}
+
+.fc .fc-timegrid-slot-label {
+    color: #28a745 !important;           /* Custom time slot label color */
+}
+
+.fc .fc-view-harness {
+    border-color: #8cf1ba !important;    /* Border color for the calendar */
+}
+
+.fc .fc-button-primary:not(:disabled).fc-button-active:focus, .fc .fc-button-primary:not(:disabled):active:focus {
+    border-color: #8cf1ba !important;
+}

@@ -1,0 +1,31 @@
+.inputText {
+    box-sizing: border-box;
+    font-family: inherit;
+    font-size: 14px;
+    vertical-align: baseline;
+    font-weight: 400;
+    line-height: 1.29;
+    letter-spacing: .16px;
+    border-radius: 0;
+    outline: 2px solid transparent;
+    outline-offset: -2px;
+    width: 100%;
+    border: none;
+    border-bottom: 1px solid #27ae60;
+    background-color: #f4f4f4;
+    padding: 0 16px;
+    color: #161616;
+    transition: background-color 70ms cubic-bezier(.2,0,.38,.9),outline 70ms cubic-bezier(.2,0,.38,.9);
+}
+
+.inputText:focus {
+    outline: 2px solid #52a46f;
+    outline-offset: -2px;
+}
+
+.textArea {
+    height: auto; /* Allows the height to adjust dynamically */
+    min-height: 80px; /* Sets a minimum height */
+    padding: 8px 16px; /* Adds padding similar to the input */
+    resize: vertical; /* Allows vertical resizing */
+}

@@ -1,0 +1,104 @@
+/* TailwindCSS styles are added via classNames */
+
+.radioSection {
+    @apply flex flex-col items-center justify-center min-h-full w-full sm:w-fit p-4;
+    position: relative;
+}
+
+.radioSection::before,
+.radioSection::after {
+    content: "";
+    display: block;
+    border-radius: 100%;
+    position: absolute;
+}
+
+
+.light {
+    --primary: hsl(250, 100%, 44%);
+    --other: hsl(0, 0%, 14%);
+    background: hsl(0, 0%, 98%);
+}
+
+.dark {
+    --primary: hsl(1, 100%, 68%);
+    --other: hsl(0, 0%, 90%);
+    background: hsl(0, 0%, 10%);
+}
+
+.radioTitle {
+    @apply text-lg font-semibold mb-4;
+    border-bottom-width: 2px;
+}
+
+.radioLabel {
+    @apply flex items-center my-3 cursor-pointer relative;
+}
+
+.radioInput {
+    @apply opacity-0 absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    z-index: -1;
+}
+
+.radioDesign {
+    @apply w-4 h-4 border rounded-full mr-4 relative;
+}
+
+.radioDesign::before,
+.radioDesign::after {
+    content: "";
+    display: block;
+    @apply w-full h-full rounded-full absolute;
+    transform: scale(0);
+    transform-origin: center center;
+}
+
+.radioDesign::before {
+    opacity: 0;
+    transition: .3s;
+}
+
+.radioDesign::after {
+    opacity: .4;
+    transition: .6s;
+}
+
+.radioText {
+    @apply font-bold;
+}
+
+.radioStack {
+    @apply flex flex-col;
+}
+
+.radioSideBySide {
+    @apply flex flex-row space-x-4;
+}
+
+input:checked + .radioDesign::before {
+    opacity: 1;
+    transform: scale(.6);
+}
+
+input:hover + .radioDesign,
+input:focus + .radioDesign {
+    border-color: var(--primary);
+}
+
+input:hover + .radioDesign::before,
+input:focus + .radioDesign::before {
+    background: var(--primary);
+}
+
+input:hover ~ .radioText {
+    color: var(--primary);
+}
+
+input:focus + .radioDesign::after,
+input:active + .radioDesign::after {
+    opacity: .1;
+    transform: scale(2.6);
+}

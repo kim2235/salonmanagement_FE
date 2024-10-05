@@ -1,0 +1,77 @@
+[
+  {
+    "id": "0d2dc1be-4173-4570-85d8-673c27ec475d",
+    "client": {
+      "id": "7d441a08-73c9-43f7-850c-e8426d4e71dd",
+      "clientName": "Shelly Gonzalez",
+      "email": "sgonzalez@example.com"
+    },
+    "subtotal": 1600,
+    "tax": 192,
+    "total": 1792.00,
+    "payment": 1800,
+    "status": "paid",
+    "balance": 0,
+    "date": "2024-09-27"
+  },
+  {
+    "id": "1f6d7e32-3fd6-4032-8a44-2f28e799657d",
+    "client": {
+      "id": "2f24bfb1-60f2-43a8-98e3-8b8de2e518e0",
+      "clientName": "James Miller",
+      "email": "jmiller@example.com"
+    },
+    "subtotal": 2400,
+    "tax": 288,
+    "total": 2688.00,
+    "payment": 2500,
+    "status": "unpaid",
+    "balance": 188,
+    "date": "2024-09-28"
+  },
+  {
+    "id": "3b95aafb-7f49-42c3-b92f-96b095ff6497",
+    "client": {
+      "id": "3b18a3e8-08c2-474d-9333-4ec3b1732e4d",
+      "clientName": "Maria Lopez",
+      "email": "mlopez@example.com"
+    },
+    "subtotal": 3200,
+    "tax": 384,
+    "total": 3584.00,
+    "payment": 3600,
+    "status": "paid",
+    "balance": 0,
+    "date": "2024-09-29"
+  },
+  {
+    "id": "58fa3db1-4b62-4a10-b7ff-25b779e7b2bb",
+    "client": {
+      "id": "8bba0a73-7c0b-4048-80c2-3d08ed56791e",
+      "clientName": "Olivia Brown",
+      "email": "obrown@example.com"
+    },
+    "subtotal": 1800,
+    "tax": 216,
+    "total": 2016.00,
+    "payment": 2000,
+    "status": "unpaid",
+    "balance": 16,
+    "date": "2024-09-30"
+  },
+  {
+    "id": "bd521c23-830e-4b32-bb02-06d6d89a13a3",
+    "client": {
+      "id": "5ac8531e-6a54-4392-bd77-6c19d0a9f159",
+      "clientName": "David Wilson",
+      "email": "dwilson@example.com"
+    },
+    "subtotal": 1400,
+    "tax": 168,
+    "total": 1568.00,
+    "payment": 1600,
+    "status": "paid",
+    "balance": 0,
+    "date": "2024-10-01"
+  }
+]

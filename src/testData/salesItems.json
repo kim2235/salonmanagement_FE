@@ -1,0 +1,52 @@
+[
+  {
+    "id": "bbc717cd-183c-4b3c-9b88-244b5dbc3572",
+    "serviceId": "a2392c9a-4ca1-4629-80b8-a7a30ba5cccd",
+    "salesId": "0d2dc1be-4173-4570-85d8-673c27ec475d",
+    "name": "Service 1",
+    "cost": 1219,
+    "category": 1,
+    "description": "This is a test description",
+    "appointmentColor": "#832557"
+  },
+  {
+    "id": "6c6a0bdc-4994-496f-a06b-36258bea1b08",
+    "serviceId": "a2392c9a-4ca1-4629-80b8-a7a30ba5cccd",
+    "salesId": "0d2dc1be-4173-4570-85d8-673c27ec475d",
+    "name": "Service 2",
+    "cost": 1727,
+    "category": 4,
+    "description": "This is a test description",
+    "appointmentColor": "#a74634"
+  },
+  {
+    "id": "d7592b35-e35a-4a7e-8ffc-f23bd8b5f2fa",
+    "serviceId": "a2392c9a-4ca1-4629-80b8-a7a30ba5cccd",
+    "salesId": "0d2dc1be-4173-4570-85d8-673c27ec475d",
+    "name": "Service 3",
+    "cost": 1201,
+    "category": 2,
+    "description": "This is a test description",
+    "appointmentColor": "#256cf2"
+  },
+  {
+    "id": "657ac597-725b-451f-b7bb-87cef86110f8",
+    "serviceId": "a2392c9a-4ca1-4629-80b8-a7a30ba5cccd",
+    "salesId": "0d2dc1be-4173-4570-85d8-673c27ec475d",
+    "name": "Service 4",
+    "cost": 262,
+    "category": 5,
+    "description": "This is a test description",
+    "appointmentColor": "#1380e3"
+  },
+  {
+    "id": "3315f3c8-8fdd-41ed-bb31-23661cf3af9a",
+    "serviceId": "a2392c9a-4ca1-4629-80b8-a7a30ba5cccd",
+    "salesId": "0d2dc1be-4173-4570-85d8-673c27ec475d",
+    "name": "Service 5",
+    "cost": 496,
+    "category": 1,
+    "description": "This is a test description",
+    "appointmentColor": "#961542"
+  }
+]

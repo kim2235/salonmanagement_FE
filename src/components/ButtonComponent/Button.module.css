@@ -1,0 +1,66 @@
+.customButton {
+    align-items: center;
+    background-color: #2ecc71;
+    border: 2px solid #27ae60;
+    box-sizing: border-box;
+    color: #fff;
+    cursor: pointer;
+    display: inline-flex;
+    fill: #000;
+    font-family: Inter, sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    justify-content: center;
+    letter-spacing: -0.8px;
+    line-height: 24px;
+    outline: 0;
+    text-align: center;
+    text-decoration: none;
+    transition: all 0.3s;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+}
+
+.customButton:focus {
+    color: #ffffff;
+}
+
+.customButton:hover {
+    background-color: #27ae60;
+    border-color: #27ae60;
+    fill: #2ecc71;
+}
+
+.customButton:active {
+    background-color: #27ae60;
+    border-color: #27ae60;
+    fill: #2ecc71;
+}
+
+@media (min-width: 768px) {
+    .customButton {
+        min-width: 170px;
+    }
+}
+
+/* Transparent Button Styles */
+.transparentButton {
+    background-color: transparent;
+    border: 2px solid #27ae60;
+    color: #27ae60;
+}
+
+.transparentButton:hover {
+    background-color: #27ae60;
+    color: #fff;
+}
+
+.transparentButton:focus {
+    color: #fff;
+}
+
+.transparentButton:active {
+    background-color: #27ae60;
+    color: #fff;
+}
