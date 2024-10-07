@@ -22,6 +22,7 @@ const Home: React.FC = () => {
         { label: 'Client List', href: '/clientlist', type: 'link' },
         { label: 'Service/Package', href: '/catalog', type: 'link'},
         { label: 'Sales', href: '/sales', type: 'link' },
+        { label: 'Team', href: '/team', type: 'link' }
     ];
     const handleItemClick = (id: string, type: 'link' | 'div') => {
         setActiveItemId(id);
