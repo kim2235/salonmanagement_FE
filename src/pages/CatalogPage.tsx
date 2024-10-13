@@ -26,6 +26,9 @@ interface SidebarItem {
     id?: string;
     active?: boolean;
 }
+type ServiceCountMap = {
+    [key: string]: number; // or number if category is always a number
+};
 const CatalogPage: React.FC = () => {
     const   navigate = useNavigate();
     const contextService = useContext(servicesContext);
@@ -51,7 +54,7 @@ const CatalogPage: React.FC = () => {
     const sortOptions = ['Created at (Newest first)', 'Created at (Oldest first)'];
     const [editingService, setEditingService] = useState<Service | Package | null>(null);
     const [currStep, setCurrStep] = useState(0 );
-    console.log(serviceCollection)
+
     // Monitor if No Category is set Yet
     useEffect(() => {
         if (categoryData.length > 0 && catalogOption.length <= 2)
@@ -75,6 +78,8 @@ const CatalogPage: React.FC = () => {
         { label: 'Client List', href: '/clientlist', type: 'link' },
         { label: 'Service/Package', href: '/catalog', type: 'link', active: true },
         { label: 'Sales', href: '/sales', type: 'link' },
+        { label: 'Team', href: '/team', type: 'link' },
+        { label: 'Marketing Kit', href: '/marketing', type: 'link'  },
     ];
 
     const handleItemClick = (id: string, type: 'link' | 'div') => {
@@ -89,6 +94,7 @@ const CatalogPage: React.FC = () => {
 
     const handleAddCategory = (category: Category) => {
         setCategoryData([...categoryData, category]);
+        console.log(categoryData)
     };
 
     const handleAddService = (service: Service | Package) => {
@@ -165,7 +171,12 @@ const CatalogPage: React.FC = () => {
             return newCollection;
         });
     };
-
+    const serviceCounts = Object.values(serviceCollection).flat().reduce<ServiceCountMap>((acc, service) => {
+        // Use the correct property name based on your Service type
+        const categoryId = service.category; // Assuming the property name is 'category'
+        acc[categoryId] = (acc[categoryId] || 0) + 1; // Increment the count
+        return acc;
+    }, {});
     return (
         <div id={styles.sub_container} className="flex flex-col lg:flex-row">
             <div className="lg:hidden p-4 flex justify-between items-center">
@@ -221,11 +232,7 @@ const CatalogPage: React.FC = () => {
                                                 <div className="mr-3">
                                                     <TextView text="All Categories" />
                                                 </div>
-                                                <div className="flex items-center">
-                                                    <span className="inline-flex items-center px-3 py-1 text-sm font-medium text-black border border-black bg-emerald-50 rounded-full">
-                                                        {categoryData.length}
-                                                    </span>
-                                                </div>
+                                                
                                             </div>
                                         </div>
                                         {categoryData.map((category) => (
@@ -237,7 +244,7 @@ const CatalogPage: React.FC = () => {
                                                     </div>
                                                     <div className="flex items-center">
                                                         <span className="inline-flex items-center px-3 py-1 text-sm font-medium text-black border border-black bg-emerald-50 rounded-full">
-                                                            {categoryData.length}
+                                                             {serviceCounts[category.id] || 0}
                                                         </span>
                                                     </div>
                                                 </div>

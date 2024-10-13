@@ -1,6 +1,6 @@
 import {SelectedClient} from "./Client";
 export interface Sales {
-    id: string,
+    id: number,
     client: SelectedClient,
     subtotal: number,
     tax: number,
@@ -12,9 +12,9 @@ export interface Sales {
 }
 
 export interface SalesItems {
-    id: string;
-    serviceId: string;
-    salesId: string;
+    id: number;
+    serviceId: number;
+    salesId: number;
     name: string;
     cost: number;
     category: number;

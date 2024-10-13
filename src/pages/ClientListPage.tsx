@@ -89,6 +89,8 @@ const ClientListPage: React.FC = () => {
         { label: 'Client List', href: '/clientlist', type: 'link', active: true },
         { label: 'Catalog', href: '/catalog', type: 'link' },
         { label: 'Sales', href: '/sales', type: 'link' },
+        { label: 'Team', href: '/team', type: 'link' },
+        { label: 'Marketing Kit', href: '/marketing', type: 'link'  },
     ];
 
     const modalSidebarItems: SidebarItem[] = [

@@ -12,6 +12,8 @@ import { packagesContext} from "../../context/packagesContext";
 import { Service, SelectedService} from "../../types/Service";
 import { Package} from "../../types/Package";
 import pricingOptions from "../../data/pricingOptions.json";
+import { generateMicrotime} from "../../utilities/microTimeStamp";
+
 interface AddServiceModalProps {
     onClose: () => void;
     option: Option[];
@@ -95,7 +97,7 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({ onClose, onAddService
             setErrors(validationErrors);
         } else {
             const newService: Service = {
-                id: serviceToEdit ? serviceToEdit.id : uuidv4(),
+                id: serviceToEdit ? serviceToEdit.id : generateMicrotime(),
                 name: serviceName,
                 category: serviceCategory,
                 description: serviceDescription,
@@ -115,7 +117,7 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({ onClose, onAddService
             setErrors(validationErrors);
         } else {
             const newPackage: Package = {
-                id: serviceToEdit ? serviceToEdit.id : uuidv4(),
+                id: serviceToEdit ? serviceToEdit.id : generateMicrotime(),
                 name: packageName,
                 description: packageDescription,
                 services: usedService,

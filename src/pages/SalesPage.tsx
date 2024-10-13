@@ -23,6 +23,7 @@ import Popover from "../components/PopoverModalComponent/Popover";
 import {Client, SelectedClient} from "../types/Client";
 import { v4 as uuidv4 } from 'uuid';
 import ClientSalesViewerModal from "../components/ClientSalesViewerModalComponent/ClientSalesViewerModal";
+import {generateMicrotime} from "../utilities/microTimeStamp";
 
 const salesData = sales
 
@@ -104,12 +105,12 @@ const SalesPage: React.FC = () => {
         if((Number(encodedCash) ?? 0 ) < addedServices.reduce((acc, service) => acc + service.cost, 0) * 1.12){
             status='unpaid';
         }
-        const salesId = uuidv4();
+        const salesId = generateMicrotime();
         const salesItems = {
             id: salesId,
             client: selectedClient[0],
             services: addedServices.map((service) => ({
-                id: uuidv4(),
+                id: generateMicrotime(),
                 serviceId: service.id,
                 salesId: salesId,
                 name: service.name,
@@ -221,6 +222,8 @@ const SalesPage: React.FC = () => {
         { label: 'Client List', href: '/clientlist', type: 'link'},
         { label: 'Catalog', href: '/catalog', type: 'link' },
         { label: 'Sales', href: '/sales', type: 'link', active: true  },
+        { label: 'Team', href: '/team', type: 'link' },
+        { label: 'Marketing Kit', href: '/marketing', type: 'link'  },
     ];
 
     const handleItemClick =  (id: string, type: 'link' | 'div') => {
@@ -345,7 +348,7 @@ const SalesPage: React.FC = () => {
                                      className="mt-2p flex items-center justify-start border-b pb-2 border-b-gray-300 cursor-pointer">
                                     <div
                                         className="p-2 w-2/12 flex-shrink-0 text-center ${styles.clientListingContentHeading}">
-                                        <TextView text={sales.id}/>
+                                        <TextView text={sales.id.toString()}/>
                                     </div>
                                     <div
                                         className="p-2 w-2/12 flex-shrink-0 text-center ${styles.clientListingContentHeading}">

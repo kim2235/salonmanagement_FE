@@ -1,7 +1,7 @@
 {
     "1": [
         {
-            "id": "087a2abb-a245-43ef-aff3-3c21c3624dc0",
+            "id": 1,
             "name": "Facial",
             "category": 1,
             "description": "Test",
@@ -10,7 +10,7 @@
             "created_at": "2024-09-20T03:31:45.221Z"
         },
         {
-            "id": "a2392c9a-4ca1-4629-80b8-a7a30ba5cccd",
+            "id": 2,
             "name": "Diamond Peel",
             "category": 1,
             "description": "this is a test only ",
@@ -19,7 +19,7 @@
             "created_at": "2024-09-20T03:32:12.962Z"
         },
         {
-            "id": "f689f058-0a22-46f6-bd73-f2519809b7e5",
+            "id": 3,
             "name": "Wax",
             "category": 1,
             "description": "test treatment",
@@ -30,7 +30,7 @@
     ],
     "2": [
         {
-            "id": "be264357-f2f3-48c4-a624-cf64d4d3a3b6",
+            "id": 4,
             "name": "Haircut",
             "category": 2,
             "description": "test hair",
@@ -39,7 +39,7 @@
             "created_at": "2024-09-20T03:32:38.238Z"
         },
         {
-            "id": "f689f058-0a22-46f6-bd73-f2519809b7e5",
+            "id": 5,
             "name": "Brazillian",
             "category": 2,
             "description": "test treatment",
@@ -50,7 +50,7 @@
     ],
     "3": [
         {
-            "id": "f689f058-0a22-46f6-bd73-f2519809b7e5",
+            "id": 6,
             "name": "Manicure",
             "category": 3,
             "description": "test mani",

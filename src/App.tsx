@@ -9,6 +9,8 @@ import CatalogPage from "./pages/CatalogPage";
 import SalesPage from "./pages/SalesPage";
 import './components/SchedulerComponent/Scheduler.css';
 import TeamMemberPage from "./pages/TeammemberPage";
+import MarketingPage from "./pages/MarketingPage";
+import DealsPage from "./pages/DealsPage";
 
 const App: React.FC = () => {
     return (
@@ -22,6 +24,8 @@ const App: React.FC = () => {
                     <Route path="/catalog" element={<CatalogPage />} />
                     <Route path="/sales" element={<SalesPage />} />
                     <Route path="/team" element={<TeamMemberPage />} />
+                    <Route path="/marketing" element={<MarketingPage />} />
+                    <Route path="/deals" element={<DealsPage />} />
                 </Routes>
             </div>
         </Router>

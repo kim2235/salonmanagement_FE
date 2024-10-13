@@ -1,7 +1,7 @@
 import {SelectedService, Service} from "./Service";
 
 export interface Package {
-    id: string;
+    id: number;
     name: string;
     description : string;
     services: SelectedService[];

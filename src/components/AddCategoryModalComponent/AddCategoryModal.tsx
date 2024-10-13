@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { FaPlus } from 'react-icons/fa';
 import Button from '../ButtonComponent/Button';
 import { v4 as uuidv4 } from 'uuid';
+import {generateMicrotime} from "../../utilities/microTimeStamp";
 export interface Category {
     id: string | number;
     name: string;
@@ -21,7 +22,7 @@ const AddCategoryModal: React.FC<AddCategoryModalProps> = ({ onClose, onAddCateg
     const handleAddCategory = () => {
         if (categoryName.trim() && description.trim() && appointmentColor.trim()) {
             const newCategory: Category = {
-                id: uuidv4(), // Generate a unique id
+                id: generateMicrotime(), // Generate a unique id
                 name: categoryName,
                 description,
                 created_at: new Date().toISOString(),

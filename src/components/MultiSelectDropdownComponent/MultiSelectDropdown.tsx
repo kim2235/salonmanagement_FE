@@ -62,7 +62,7 @@ const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({ servicesByCat
     }, []);
 
     // Remove service from selected services.json
-    const handleRemoveService = (serviceId: string) => {
+    const handleRemoveService = (serviceId: Number) => {
         setSelectedServices(prev => {
             const updatedServices = prev.filter(service => service.id !== serviceId);
             setTimeout(() => onSelectionChange(updatedServices), 0);

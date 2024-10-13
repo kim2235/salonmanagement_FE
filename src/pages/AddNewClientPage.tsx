@@ -39,9 +39,11 @@ const AddNewClientPage: React.FC = () => {
 
     const sidebarItems: SidebarItem[] = [
         { label: 'Dashboard', href: '/', type: 'link' },
-        { label: 'Client List', href: '/clientlist', type: 'link', active: true },
-        { label: 'Catalog', href: '/catalog', type: 'link' },
-        { label: 'Form', href: '#form', type: 'link' },
+        { label: 'Client List', href: '/clientlist', type: 'link',active: true  },
+        { label: 'Service/Package', href: '/catalog', type: 'link'},
+        { label: 'Sales', href: '/sales', type: 'link' },
+        { label: 'Team', href: '/team', type: 'link'  },
+        { label: 'Marketing Kit', href: '/marketing', type: 'link'  },
     ];
     const handleItemClick =  (id: string, type: 'link' | 'div') => {
 

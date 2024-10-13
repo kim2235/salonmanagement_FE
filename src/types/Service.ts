@@ -1,7 +1,7 @@
 import exp from "node:constants";
 
 export interface Service {
-    id: string;
+    id: number;
     name: string;
     description: string;
     aftercareDescription: string;
@@ -11,7 +11,7 @@ export interface Service {
 }
 
 export interface SelectedService {
-    id: string;
+    id: number;
     serviceName: string;
     category: number;
     price: number;
