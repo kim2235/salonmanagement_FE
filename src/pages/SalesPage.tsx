@@ -221,6 +221,7 @@ const SalesPage: React.FC = () => {
         { label: 'Dashboard', href: '/', type: 'link'},
         { label: 'Client List', href: '/clientlist', type: 'link'},
         { label: 'Catalog', href: '/catalog', type: 'link' },
+        { label: 'Product Page', href: '/product', type: 'link'  },
         { label: 'Sales', href: '/sales', type: 'link', active: true  },
         { label: 'Team', href: '/team', type: 'link' },
         { label: 'Marketing Kit', href: '/marketing', type: 'link'  },
@@ -673,7 +674,9 @@ const SalesPage: React.FC = () => {
                                                     trigger={<FaEllipsisV/>}
                                                     content={
                                                         <div>
-                                                            <div>Save Unpaid</div>
+                                                            <div onClick={handleSetSalesItems} style={{ cursor: 'pointer' }}>Save
+                                                                Unpaid
+                                                            </div>
                                                             <div>Cancel Sale</div>
                                                         </div>
                                                     }

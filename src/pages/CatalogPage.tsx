@@ -5,7 +5,7 @@ import styles from './styles/ClientStyle.module.css';
 import InputText from "../components/InputTextComponent/InputText";
 import DropdownButton from "../components/DropdownButtonComponent/DropdownButton";
 import { useNavigate } from 'react-router-dom';
-import {FaPlus, FaBars, FaEllipsisV} from 'react-icons/fa';
+import {FaPlus, FaBars, FaEllipsisV, FaCalendar} from 'react-icons/fa';
 import ClientProfile from "../components/SubClientComponent/ClientProfile";
 import AddCategoryModal from "../components/AddCategoryModalComponent/AddCategoryModal";
 import { Category } from "../components/AddCategoryModalComponent/AddCategoryModal"
@@ -17,6 +17,7 @@ import { packagesContext } from "../context/packagesContext";
 import {Package} from "../types/Package";
 import categories from "../testData/categories.json";
 import services from "../testData/services.json";
+import Button from "../components/ButtonComponent/Button";
 const categoryRawData: Category[] = categories;
 
 interface SidebarItem {
@@ -47,6 +48,7 @@ const CatalogPage: React.FC = () => {
     const [serviceCollection, setServiceCollection] = useState<{ [key: number]: Service[] }>(services);
     const [packageCollection, setPackageCollection] = useState<{ [key: string]: Package[] }>({});
     const [isAddCategoryModalOpen, setIsAddCategoryModalOpen] = useState(false);
+    const [isAddProductModalOpen, setIsAddProductModalOpen] = useState(false);
     const [isAddServiceModalOpen, setIsAddServiceModalOpen] = useState(false);
 
     const [activeContent, setActiveContent] = useState<React.ReactNode>(<ClientProfile />);
@@ -77,6 +79,7 @@ const CatalogPage: React.FC = () => {
         { label: 'Dashboard', href: '/', type: 'link' },
         { label: 'Client List', href: '/clientlist', type: 'link' },
         { label: 'Service/Package', href: '/catalog', type: 'link', active: true },
+        { label: 'Product Page', href: '/product', type: 'link'  },
         { label: 'Sales', href: '/sales', type: 'link' },
         { label: 'Team', href: '/team', type: 'link' },
         { label: 'Marketing Kit', href: '/marketing', type: 'link'  },
@@ -207,12 +210,22 @@ const CatalogPage: React.FC = () => {
                         </div>
                     </div>
                     <div className="flex items-center justify-between">
-                        <DropdownButton options={catalogOption} onSelect={handleOptionSelect} defaultSelected={'Catalog'} />
+                        <div className={`mr-2`}><Button onClick={() => (setIsAddServiceModalOpen(true))}><FaPlus
+                            className="mr-2"/>Add Service</Button></div>
+                        <div className={`ml-2 mr-2`}><Button onClick={() => (setIsAddProductModalOpen(true))}><FaPlus
+                            className="mr-2 ml-2"/>Add New Product</Button>
+                        </div>
+                        <div className={`ml-2`}><Button onClick={() => (setIsAddCategoryModalOpen(true))}><FaPlus/>Add
+                            Category
+                        </Button>
+                        </div>
+
+
                     </div>
                 </div>
                 <div className={`mt-2p flex items-center justify-between ${styles.clientListSearchSection}`}>
                     <div className="w-1/3">
-                        <InputText placeholder="Search Service Name" name="serviceSearch" />
+                    <InputText placeholder="Search Service Name" name="serviceSearch"/>
                     </div>
                     <div>
                         <DropdownButton options={sortOptions} onSelect={handleOptionSelect} defaultSelected={sortOptions[0]} />
@@ -220,7 +233,7 @@ const CatalogPage: React.FC = () => {
                 </div>
                 <div className="mt-2p">
                     <div className="flex w-full h-full">
-                        <div className="w-1/2 flex justify-center items-center">
+                        <div className="w-1/2 flex justify-center">
                             <div className="w-3/4 flex flex-col">
                                 <div className="border p-2 w-full h-100 text-left flex flex-col">
                                     <div className="ml-4 mr-4 text-2xl font-bold border-b border-b-gray-400">
@@ -232,7 +245,7 @@ const CatalogPage: React.FC = () => {
                                                 <div className="mr-3">
                                                     <TextView text="All Categories" />
                                                 </div>
-                                                
+
                                             </div>
                                         </div>
                                         {categoryData.map((category) => (
@@ -258,6 +271,11 @@ const CatalogPage: React.FC = () => {
                                         <FaPlus className="text-lg" />
                                         <span>Add New Category</span>
                                     </button>
+                                </div>
+                                <div className="mt-2 border p-2 w-full h-100 text-left flex flex-col">
+                                    <div>
+                                        test
+                                    </div>
                                 </div>
                             </div>
                         </div>

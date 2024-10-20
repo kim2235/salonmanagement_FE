@@ -1,32 +1,40 @@
 import React, { useState } from 'react';
 import { FaPlus } from 'react-icons/fa';
 import Button from '../ButtonComponent/Button';
-import { v4 as uuidv4 } from 'uuid';
-import {generateMicrotime} from "../../utilities/microTimeStamp";
+import { generateMicrotime } from "../../utilities/microTimeStamp";
+
 export interface Category {
     id: string | number;
     name: string;
     description: string;
     created_at: string;
-    appointmentColor: string;
+    appointmentColor?: string;
+    categoryType?: string;
 }
+
 interface AddCategoryModalProps {
     onClose: () => void;
     onAddCategory: (category: Category) => void;
+    hasColorPicker?: boolean; // Make color picker optional
 }
 
-const AddCategoryModal: React.FC<AddCategoryModalProps> = ({ onClose, onAddCategory }) => {
+const AddCategoryModal: React.FC<AddCategoryModalProps> = ({
+                                                               onClose,
+                                                               onAddCategory,
+                                                               hasColorPicker = true // Default value is true
+                                                           }) => {
     const [categoryName, setCategoryName] = useState<string>('');
     const [description, setDescription] = useState<string>('');
     const [appointmentColor, setAppointmentColor] = useState<string>('#000000');
+
     const handleAddCategory = () => {
-        if (categoryName.trim() && description.trim() && appointmentColor.trim()) {
+        if (categoryName.trim() && description.trim()) {
             const newCategory: Category = {
                 id: generateMicrotime(), // Generate a unique id
                 name: categoryName,
                 description,
                 created_at: new Date().toISOString(),
-                appointmentColor
+                ...(hasColorPicker && { appointmentColor }) // Add appointmentColor only if hasColorPicker is true
             };
             onAddCategory(newCategory);
             onClose();
@@ -54,28 +62,31 @@ const AddCategoryModal: React.FC<AddCategoryModalProps> = ({ onClose, onAddCateg
                     placeholder="Description"
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    className="mb-2 border p-2 w-full h-24 resize-none" // Use textarea with adjustable height
+                    className="mb-2 border p-2 w-full h-24 resize-none"
                 />
-                <div className="mb-4">
-                    <label className="block text-sm font-medium mb-2">
-                        Appointment Color
-                    </label>
-                    <div className="flex items-center">
-                        <input
-                            type="color"
-                            value={appointmentColor}
-                            onChange={(e) => setAppointmentColor(e.target.value)}
-                            className="w-12 h-12 border border-gray-300 rounded"
-                        />
-                        <input
-                            type="text"
-                            value={appointmentColor}
-                            onChange={(e) => setAppointmentColor(e.target.value)}
-                            className="ml-4 p-2 border border-gray-300 rounded"
-                            placeholder="#000000"
-                        />
+
+                {hasColorPicker && ( // Render color picker only if hasColorPicker is true
+                    <div className="mb-4">
+                        <label className="block text-sm font-medium mb-2">
+                            Appointment Color
+                        </label>
+                        <div className="flex items-center">
+                            <input
+                                type="color"
+                                value={appointmentColor}
+                                onChange={(e) => setAppointmentColor(e.target.value)}
+                                className="w-12 h-12 border border-gray-300 rounded"
+                            />
+                            <input
+                                type="text"
+                                value={appointmentColor}
+                                onChange={(e) => setAppointmentColor(e.target.value)}
+                                className="ml-4 p-2 border border-gray-300 rounded"
+                                placeholder="#000000"
+                            />
+                        </div>
                     </div>
-                </div>
+                )}
 
                 <Button onClick={handleAddCategory} size="medium">
                     Add Category
