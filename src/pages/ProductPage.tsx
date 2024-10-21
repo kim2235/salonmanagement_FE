@@ -15,6 +15,7 @@ import AddProductModal, {Product} from "../components/AddProductModalComponent/A
 import AddCategoryModal, {Category} from "../components/AddCategoryModalComponent/AddCategoryModal";
 import ProductCategoryListingModal
     from "../components/ProductCategoryListingModalComponent/ProductCategoryListingModal";
+import EditProductModal from "../components/EditProductModalComponent/EditProductModal";
 interface SidebarItem {
     label: string;
     href?: string;
@@ -28,12 +29,13 @@ const ProductPage: React.FC = () => {
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
     const [isCategoryModalOpen, setIsCategoryModalOpen] = useState<boolean>(false);
     const [isManageCategoryModalOpen, setIsManageCategoryModalOpen] = useState<boolean>(false);
+    const [showEditModal, setShowEditModal] = useState<boolean>(false);
 
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [categoryData, setCategoryData] = useState<Category[]>( []);
-
+    const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
     const [teamSearch, setTeamSearch] = useState<any>(null);
-
+    const [products, setProducts] = useState<Product[]>([]);
     const sidebarItems: SidebarItem[] = [
         { label: 'Dashboard', href: '/', type: 'link' },
         { label: 'Client List', href: '/clientlist', type: 'link' },
@@ -46,13 +48,11 @@ const ProductPage: React.FC = () => {
     const handleItemClick = (id: string, type: 'link' | 'div') => {
         setActiveItemId(id);
     };
-
     useEffect(() => {
-        console.log(categoryData)
-    }, [categoryData]);
+        console.log(products)
+    }, [products]);
 
-    const [products, setProducts] = useState<Product[]>([]);
-    const categories: string[] = [];
+
 
     const handleAddProduct = (newProduct: Product) => {
         setProducts((prevProducts) => [...prevProducts, newProduct]);
@@ -68,6 +68,17 @@ const ProductPage: React.FC = () => {
     const handleAddCategory = (category: Category) => {
         setCategoryData([...categoryData, category]);
     };
+    const handleProductUpdate = (updatedProduct: Product) => {
+        setProducts((prevProducts) =>
+            prevProducts.map((product) =>
+                product.id === updatedProduct.id ? updatedProduct : product
+            )
+        );
+    };
+    const openEditModal = (product: Product) => {
+        setSelectedProduct(product);
+        setShowEditModal(true);
+    };
     return (
         <div className={`flex flex-col lg:flex-row h-screen`}>
             {isModalOpen && (
@@ -78,12 +89,21 @@ const ProductPage: React.FC = () => {
                 />
             )}
             {isCategoryModalOpen && <AddCategoryModal hasColorPicker={false} onClose={() => setIsCategoryModalOpen(false)}
-                                                         onAddCategory={handleAddCategory}/>}
+                                                      onAddCategory={handleAddCategory}/>}
             {isManageCategoryModalOpen && (
                 <ProductCategoryListingModal
                     categories={categoryData}
                     onUpdateCategory={handleSaveCategory}
                     onClose={() => setIsManageCategoryModalOpen(false)}
+                />
+            )}
+
+            {showEditModal &&  selectedProduct && (
+                <EditProductModal
+                    product={selectedProduct}
+                    onClose={() => setShowEditModal(false)}
+                    onSaveProduct={handleProductUpdate}
+                    categories={categoryData}
                 />
             )}
             <div className="lg:hidden p-4 flex justify-between items-center">
@@ -103,7 +123,7 @@ const ProductPage: React.FC = () => {
 
             <div className="flex-1 p-4">
                 <div id="clientHeading" className="flex items-center justify-between">
-                    <div>
+                    <div className={`w-1/2`}>
                         <div className="flex items-center">
                             <div className={`${styles.pageContentHeading} mr-3`}>
                                 <TextView text="Product Management"/>
@@ -116,7 +136,7 @@ const ProductPage: React.FC = () => {
                             </div>
                         </div>
                     </div>
-                    <div className="flex w-1/2 items-center justify-end">
+                    <div className="flex w-full items-center justify-end">
                         <div className={`mr-2`}><Button onClick={() => (setIsModalOpen(true))} disabled={categoryData.length === 0}><FaPlus className="mr-2"/>Add New Product</Button></div>
                         <div className={`mr-2`}><Button onClick={() => (setIsManageCategoryModalOpen(true))} disabled={categoryData.length === 0}><FaWrench className="mr-2"/>Manage Categories</Button></div>
                         <div className={`mr-2`}><Button onClick={() => (setIsCategoryModalOpen(true))}><FaPlus className="mr-2"/>Add New Product Category</Button></div>
@@ -147,65 +167,56 @@ const ProductPage: React.FC = () => {
                         </div>
                     </div>
                     <div id="clientListContent">
-                        <div className={`flex m-2p justify-start`}>
-                            <div className="p-2 w-1/4 flex-shrink-0 flex justify-start">
-                                <div>
-                                    <Avatar name={`John Doe`} size="75px"/>
-                                </div>
-                                <div className="ml-10p mt-2p">
-                                    <div className="flex justify-center items-center h-full w-full">
-                                        <TextView className="text-center text-lg font-bold" text="Prod 1"/>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="p-2 w-1/5 flex-shrink-0 flex justify-self-start">
-                                <div className="mt-2p">
-                                    <div className=" items-center">
-                                        <TextView className="text-center text-lg " text="john@example.com"/>
-                                    </div>
-                                    <div className=" items-center">
-                                        <TextView className="text-center text-lg " text="099999999"/>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="p-2 w-1/5 flex-shrink-0 flex justify-self-start">
-                                <div className="mt-2p">
-                                    <div className=" items-center">
-                                        <TextView className="text-center text-lg " text="-"/>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="p-2 w-1/4 flex-shrink-0 flex justify-self-start">
-                                <div className="mt-2p">
-                                    <div className="items-center">
-                                        <TextView className="text-center text-lg " text="100"/>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className={`flex justify-center items-center h-full w-full`}>
-                                <div className={`mt-2p`}>
-                                    <Popover
-                                        trigger={<FaEllipsisV/>}
-                                        content={<div>
-                                            <div
-                                                onClick={() => console.log('test')}
-                                                style={{
-                                                    padding: '8px',
-                                                    cursor: 'pointer'
-                                                }}>Edit
+                        <div className={`flex flex-col m-2p justify-start`}>
+                            {products.length > 0 ? (
+                                products.map((product, index) => (
+                                    <div key={product.id || index} className={`flex w-full m-2p justify-start`}>
+                                        <div className="p-2 w-1/4 flex-shrink-0 flex justify-start">
+                                            {product.thumbnail ? (
+                                                <img
+                                                    src={`/temp/productImg/bottleSample.jpg`}
+                                                    alt={product.name}
+                                                    className="w-[75px] h-[75px] rounded-full object-cover"
+                                                />
+                                            ) : (
+                                                <Avatar name={product.name} size="75px" />
+                                            )}
+                                            <div className="ml-10p mt-2p">
+                                                <TextView className="text-center text-lg font-bold" text={product.name} />
                                             </div>
-                                            <div
-                                                onClick={() => console.log('test')}
-                                                style={{
-                                                    padding: '8px',
-                                                    cursor: 'pointer'
-                                                }}>Delete
-                                            </div>
-                                        </div>}
-                                        position="left"
-                                    />
+                                        </div>
+                                        <div className="p-2 w-1/4 text-center">
+                                            <TextView text={ categoryData.find((cat) => cat.id === Number(product.category))?.name || 'N/A'} />
+                                        </div>
+                                        <div className="p-2 w-1/4 text-center">
+                                            <TextView text={product.supplier || 'N/A'} />
+                                        </div>
+                                        <div className="p-2 w-1/4 text-center">
+                                            <TextView text={product.stockQuantity.toString()} />
+                                        </div>
+                                        <div className="p-2 w-1/4 text-center">
+                                            <Popover
+                                                position={`left`}
+                                                trigger={<FaEllipsisV />}
+                                                content={
+                                                    <div>
+                                                        <div onClick={() => openEditModal(product) } style={{ padding: '8px', cursor: 'pointer' }}>
+                                                            Edit
+                                                        </div>
+                                                        <div onClick={() => console.log('Delete product')} style={{ padding: '8px', cursor: 'pointer' }}>
+                                                            Delete
+                                                        </div>
+                                                    </div>
+                                                }
+                                            />
+                                        </div>
+                                    </div>
+                                ))
+                            ) : (
+                                <div className="w-full text-center mt-10p">
+                                    <TextView text="No products available." />
                                 </div>
-                            </div>
+                            )}
                         </div>
                     </div>
                 </div>

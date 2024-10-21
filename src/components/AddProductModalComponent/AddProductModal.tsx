@@ -5,7 +5,7 @@ import { generateMicrotime } from '../../utilities/microTimeStamp';
 import { Category } from "../AddCategoryModalComponent/AddCategoryModal"; // Assuming this is the correct import
 import InputText from '../InputTextComponent/InputText'; // Import your reusable InputText component
 import TextArea from '../TextAreaComponent/TextArea';
-import Select from "../SelectComponent/Select"; // Import your reusable TextArea component
+import Select from "../SelectComponent/Select"; // Import your reusable Select component
 
 export interface Product {
     id: string | number;
@@ -74,23 +74,24 @@ const AddProductModal: React.FC<AddProductModalProps> = ({ onClose, onAddProduct
     };
 
     return (
-        <div className="fixed inset-0 flex justify-center items-center z-50 bg-black bg-opacity-50">
-            <div className="bg-white p-6 rounded-lg shadow-lg w-[600px] relative flex flex-col">
+        <div className={`fixed inset-0 flex justify-center items-center z-50 bg-black bg-opacity-50`}>
+            <div className={`bg-white p-6 rounded-lg shadow-lg w-[600px] relative flex flex-col`}>
                 <button
                     onClick={onClose}
-                    className="absolute top-0 right-0 mt-[-12px] mr-[-12px] w-8 h-8 flex items-center justify-center border border-gray-300 rounded-full bg-white z-50"
+                    className={`absolute top-0 right-0 mt-[-12px] mr-[-12px] w-8 h-8 flex items-center justify-center border border-gray-300 rounded-full bg-white z-50`}
+                    aria-label="Close Modal"
                 >
-                    <FaPlus className="transform rotate-45" />
+                    <FaPlus className={`transform rotate-45`} />
                 </button>
-                <h2 className="text-xl font-semibold mb-4">Add New Product</h2>
-                <div className="flex flex-grow">
-                    <div className="flex-1 pr-4">
+                <h2 className={`text-xl font-semibold mb-4`}>Add New Product</h2>
+                <div className={`flex flex-grow`}>
+                    <div className={`flex-1 pr-4`}>
                         <div className={`mb-2`}>
                             <InputText
-                            placeholder="Product Name"
-                            value={productName}
-                            onChange={(e) => setProductName(e.target.value)}
-                        />
+                                placeholder="Product Name"
+                                value={productName}
+                                onChange={(e) => setProductName(e.target.value)}
+                            />
                         </div>
                         <div className={`mb-2`}>
                             <InputText
@@ -100,7 +101,7 @@ const AddProductModal: React.FC<AddProductModalProps> = ({ onClose, onAddProduct
                             />
                         </div>
 
-                        <div className="mb-2">
+                        <div className={`mb-2`}>
                             <Select
                                 label="Product Category"
                                 value={category}
@@ -121,8 +122,8 @@ const AddProductModal: React.FC<AddProductModalProps> = ({ onClose, onAddProduct
                         />
 
                         {/* Divider and Stock Management Section */}
-                        <hr className="my-4"/>
-                        <h3 className="text-lg font-semibold mb-2">Stock Management</h3>
+                        <hr className={`my-4`}/>
+                        <h3 className={`text-lg font-semibold mb-2`}>Stock Management</h3>
                         <div className={`mb-2`}>
                             <InputText
                                 placeholder="Supplier"
@@ -139,32 +140,31 @@ const AddProductModal: React.FC<AddProductModalProps> = ({ onClose, onAddProduct
                             />
                         </div>
 
-
-                        <div className="flex items-center mb-4">
+                        <div className={`flex items-center mb-4`}>
                             <input
                                 type="checkbox"
                                 checked={trackStock}
                                 onChange={() => setTrackStock(!trackStock)}
-                                className="mr-2"
+                                className={`mr-2`}
                             />
                             <label>Track Stock?</label>
                         </div>
-                        <div className="mb-2">
-                            <h2 className="text-lg font-medium mb-1">Low Stock Reordering</h2>
+                        <div className={`mb-2`}>
+                            <h2 className={`text-lg font-medium mb-1`}>Low Stock Reordering</h2>
 
                             <div className={`mb-2`}>
-                                <label className="block text-sm font-medium mb-1">Low Stock Level</label>
+                                <label className={`block text-sm font-medium mb-1`}>Low Stock Level</label>
                                 <InputText
-                                    type="text"
+                                    type="number"
                                     placeholder="Low Stock Quantity"
                                     value={lowStockQuantity}
                                     onChange={(e) => setLowStockQuantity(Number(e.target.value))}
                                 />
                             </div>
                             <div className={`mb-2`}>
-                                <label className="block text-sm font-medium mb-1">Reorder Quantity</label>
+                                <label className={`block text-sm font-medium mb-1`}>Reorder Quantity</label>
                                 <InputText
-                                    type="text"
+                                    type="number"
                                     placeholder="Reorder Quantity"
                                     value={reorderQuantity}
                                     onChange={(e) => setReorderQuantity(Number(e.target.value))}
@@ -172,26 +172,26 @@ const AddProductModal: React.FC<AddProductModalProps> = ({ onClose, onAddProduct
                             </div>
                         </div>
                     </div>
-                    <div className="w-1/3 flex flex-col items-center">
-                        <label className="block text-sm font-medium mb-2">Upload Thumbnail</label>
+                    <div className={`w-1/3 flex flex-col items-center`}>
+                        <label className={`block text-sm font-medium mb-2`}>Upload Thumbnail</label>
                         <input
                             type="file"
                             accept="image/*"
                             onChange={handleFileChange}
-                            className="mb-2 border p-2 w-full"
+                            className={`mb-2 border p-2 w-full`}
                         />
                         {thumbnail && (
-                            <div className="mt-2">
+                            <div className={`mt-2`}>
                                 <img
                                     src={thumbnail}
                                     alt="Thumbnail Preview"
-                                    className="w-full h-48 object-cover rounded border"
+                                    className={`w-full h-48 object-cover rounded border`}
                                 />
                             </div>
                         )}
                     </div>
                 </div>
-                <Button onClick={handleAddProduct} size="medium" className="mt-4">
+                <Button onClick={handleAddProduct} size="medium" className={`mt-4`}>
                     Add Product
                 </Button>
             </div>
