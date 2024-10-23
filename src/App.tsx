@@ -11,7 +11,7 @@ import './components/SchedulerComponent/Scheduler.css';
 import TeamMemberPage from "./pages/TeammemberPage";
 import MarketingPage from "./pages/MarketingPage";
 import DealsPage from "./pages/DealsPage";
-import ProductPage from "./pages/ProductPage";
+import InventoryPage from "./pages/InventoryPage";
 
 const App: React.FC = () => {
     return (
@@ -27,7 +27,7 @@ const App: React.FC = () => {
                     <Route path="/team" element={<TeamMemberPage />} />
                     <Route path="/marketing" element={<MarketingPage />} />
                     <Route path="/deals" element={<DealsPage />} />
-                    <Route path="/product" element={<ProductPage />} />
+                    <Route path="/product" element={<InventoryPage />} />
                 </Routes>
             </div>
         </Router>

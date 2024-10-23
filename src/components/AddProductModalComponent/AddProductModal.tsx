@@ -20,6 +20,8 @@ export interface Product {
     trackStock: boolean; // New field
     lowStockQuantity: number; // New field
     reorderQuantity: number; // New field
+    measurementUnit: string; // New field
+    measurementAmount: number; // New field
 }
 
 interface AddProductModalProps {
@@ -35,11 +37,26 @@ const AddProductModal: React.FC<AddProductModalProps> = ({ onClose, onAddProduct
     const [description, setDescription] = useState<string>('');
     const [thumbnail, setThumbnail] = useState<string>(''); // Base64 string or URL for the image preview
     const [supplier, setSupplier] = useState<string>(''); // New state
-    const [stockQuantity, setStockQuantity] = useState<number>(0); // New state
+    const [stockQuantity, setStockQuantity] = useState<number>(1); // New state
     const [trackStock, setTrackStock] = useState<boolean>(false); // New state
-    const [lowStockQuantity, setLowStockQuantity] = useState<number>(0); // New state
-    const [reorderQuantity, setReorderQuantity] = useState<number>(0); // New state
-
+    const [lowStockQuantity, setLowStockQuantity] = useState<number>(1); // New state
+    const [reorderQuantity, setReorderQuantity] = useState<number>(1); // New state
+    const [measurementUnit, setMeasurementUnit] = useState<string>('ml'); // New state
+    const [measurementAmount, setMeasurementAmount] = useState<number>(1); // New state
+    const unit = [
+        {
+            name: 'Milliliters (ml)',
+            value: 'ml'
+        },
+        {
+            name: 'Gallons (gal)',
+            value: 'gal'
+        },
+        {
+            name: 'Liters (l)',
+            value: 'l'
+        }
+    ]
     const handleAddProduct = () => {
         if (productName.trim() && shortDescription.trim() && category && description.trim() && thumbnail) {
             const newProduct: Product = {
@@ -55,6 +72,8 @@ const AddProductModal: React.FC<AddProductModalProps> = ({ onClose, onAddProduct
                 trackStock,
                 lowStockQuantity,
                 reorderQuantity,
+                measurementUnit,
+                measurementAmount
             };
             onAddProduct(newProduct);
             onClose();
@@ -115,6 +134,31 @@ const AddProductModal: React.FC<AddProductModalProps> = ({ onClose, onAddProduct
                                 ))}
                             </Select>
                         </div>
+                        <div className={`flex`}>
+                            <div className={`w-1/2 mb-2 mr-2`}>
+                                <Select
+                                    label="Measure"
+                                    value={measurementUnit}
+                                    onChange={(e) => setMeasurementUnit(e.target.value)}
+                                >
+                                    <option disabled={true} value="">Select Unit</option>
+                                    {unit.map((cat) => (
+                                        <option key={cat.value} value={cat.value}>
+                                            {cat.name}
+                                        </option>
+                                    ))}
+                                </Select>
+                            </div>
+                            <div className={`w-1/2 mb-2 ml-2`}>
+                                <label className={`block text-sm font-medium mb-2`}>Amount</label>
+                                <InputText
+                                    type="text"
+                                    placeholder="Measurement Amount"
+                                    value={measurementAmount}
+                                    onChange={(e) => setMeasurementAmount(Number(e.target.value))}
+                                />
+                            </div>
+                        </div>
                         <TextArea
                             placeholder="Product Description"
                             value={description}
@@ -132,6 +176,7 @@ const AddProductModal: React.FC<AddProductModalProps> = ({ onClose, onAddProduct
                             />
                         </div>
                         <div className={`mb-2`}>
+                            <label className={`block text-sm font-medium mb-1`}>Current Stock Quantity</label>
                             <InputText
                                 type="number"
                                 placeholder="Current Stock Quantity"
@@ -149,27 +194,32 @@ const AddProductModal: React.FC<AddProductModalProps> = ({ onClose, onAddProduct
                             />
                             <label>Track Stock?</label>
                         </div>
-                        <div className={`mb-2`}>
-                            <h2 className={`text-lg font-medium mb-1`}>Low Stock Reordering</h2>
+                        <div className={`flex flex-col mb-2`}>
+                            <div className={'w-full'}>
+                                <h2 className={`text-lg font-medium mb-1`}>Low Stock Reordering</h2>
+                            </div>
 
-                            <div className={`mb-2`}>
-                                <label className={`block text-sm font-medium mb-1`}>Low Stock Level</label>
-                                <InputText
-                                    type="number"
-                                    placeholder="Low Stock Quantity"
-                                    value={lowStockQuantity}
-                                    onChange={(e) => setLowStockQuantity(Number(e.target.value))}
-                                />
+                            <div className={`flex`}>
+                                <div className={`w-1/2 mb-2 mr-2`}>
+                                    <label className={`block text-sm font-medium mb-1`}>Low Stock Level</label>
+                                    <InputText
+                                        type="number"
+                                        placeholder="Low Stock Quantity"
+                                        value={lowStockQuantity}
+                                        onChange={(e) => setLowStockQuantity(Number(e.target.value))}
+                                    />
+                                </div>
+                                <div className={`w-1/2 mb-2 ml-2`}>
+                                    <label className={`block text-sm font-medium mb-1`}>Reorder Quantity</label>
+                                    <InputText
+                                        type="number"
+                                        placeholder="Reorder Quantity"
+                                        value={reorderQuantity}
+                                        onChange={(e) => setReorderQuantity(Number(e.target.value))}
+                                    />
+                                </div>
                             </div>
-                            <div className={`mb-2`}>
-                                <label className={`block text-sm font-medium mb-1`}>Reorder Quantity</label>
-                                <InputText
-                                    type="number"
-                                    placeholder="Reorder Quantity"
-                                    value={reorderQuantity}
-                                    onChange={(e) => setReorderQuantity(Number(e.target.value))}
-                                />
-                            </div>
+
                         </div>
                     </div>
                     <div className={`w-1/3 flex flex-col items-center`}>

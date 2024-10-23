@@ -23,7 +23,7 @@ interface SidebarItem {
     id?: string;
     active?: boolean;
 }
-const ProductPage: React.FC = () => {
+const InventoryPage: React.FC = () => {
     const [reservations, setReservations] = useState<any[]>([]);
     const [activeItemId, setActiveItemId] = useState<string | null>('clientDetail');
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
@@ -126,7 +126,7 @@ const ProductPage: React.FC = () => {
                     <div className={`w-1/2`}>
                         <div className="flex items-center">
                             <div className={`${styles.pageContentHeading} mr-3`}>
-                                <TextView text="Product Management"/>
+                                <TextView text="Inventory Management"/>
                             </div>
 
                         </div>
@@ -227,4 +227,4 @@ const ProductPage: React.FC = () => {
     );
 };
 
-export default ProductPage;
+export default InventoryPage;
