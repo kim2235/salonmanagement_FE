@@ -24,16 +24,9 @@ import {Client, SelectedClient} from "../types/Client";
 import { v4 as uuidv4 } from 'uuid';
 import ClientSalesViewerModal from "../components/ClientSalesViewerModalComponent/ClientSalesViewerModal";
 import {generateMicrotime} from "../utilities/microTimeStamp";
+import {sidebarItems} from "./menuitems/sidebarItems";
 
 const salesData = sales
-
-interface SidebarItem {
-    label: string;
-    href?: string;
-    type: 'link' | 'div';
-    id?: string;
-    active?: boolean;
-}
 
 const SalesPage: React.FC = () => {
     const navigate = useNavigate();
@@ -65,7 +58,14 @@ const SalesPage: React.FC = () => {
     const [salesViewerModalOpen, setSalesViewerModalOpen] = useState(false);
     const [isSuccess, setIsSuccess] = useState(true);
     const [message, setMessage] = useState('');
+    const [activeItem, setActiveItem] = useState<string | null>('sales');
 
+    const handleItemClick = (id: string, type: 'link' | 'div') => {
+        setActiveItem(id);
+        if (type === 'link') {
+            navigate(id);
+        }
+    };
     const showSuccess = () => {
         setIsSuccess(true);
         setMessage('Transaction completed successfully!');
@@ -217,31 +217,6 @@ const SalesPage: React.FC = () => {
         console.log(`${cartNav[index]} clicked`);
     };
 
-    const sidebarItems: SidebarItem[] = [
-        { label: 'Dashboard', href: '/', type: 'link'},
-        { label: 'Client List', href: '/clientlist', type: 'link'},
-        { label: 'Catalog', href: '/catalog', type: 'link' },
-        { label: 'Product Page', href: '/product', type: 'link'  },
-        { label: 'Sales', href: '/sales', type: 'link', active: true  },
-        { label: 'Team', href: '/team', type: 'link' },
-        { label: 'Marketing Kit', href: '/marketing', type: 'link'  },
-    ];
-
-    const handleItemClick =  (id: string, type: 'link' | 'div') => {
-        setActiveItemId(id);
-        if (type === 'div') {
-            switch (id) {
-                case 'clientDetail':
-                    setActiveContent(<ClientProfile />);
-                    break;
-
-            }
-        } else if (type === 'link') {
-            // For links, you might not need to do anything, as the browser handles the navigation
-            // If needed, you can add additional logic here
-        }
-    };
-
 
     let  displayedSales = saveSales.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
                                 .slice(currentPage * clientsPerPage, (currentPage + 1) * clientsPerPage);
@@ -286,7 +261,7 @@ const SalesPage: React.FC = () => {
                 <div className={`${isSidebarOpen ? styles.pageLabel + ' hidden' : styles.pageLabel + ' hidden lg:block'}`}>
                     <TextView text="Sales" />
                 </div>
-                <ClientSidebar items={sidebarItems}  onItemClick={handleItemClick} />
+                <ClientSidebar items={sidebarItems}  onItemClick={handleItemClick} activeItem={activeItem} />
 
             </div>
 

@@ -26,7 +26,22 @@ const EditProductModal: React.FC<EditProductModalProps> = ({ product, onClose, o
     const [trackStock, setTrackStock] = useState<boolean>(product.trackStock);
     const [lowStockQuantity, setLowStockQuantity] = useState<number>(product.lowStockQuantity);
     const [reorderQuantity, setReorderQuantity] = useState<number>(product.reorderQuantity);
-
+    const [measurementUnit, setMeasurementUnit] = useState<string>('ml'); // New state
+    const [measurementAmount, setMeasurementAmount] = useState<number>(1); // New state
+    const unit = [
+        {
+            name: 'Milliliters (ml)',
+            value: 'ml'
+        },
+        {
+            name: 'Gallons (gal)',
+            value: 'gal'
+        },
+        {
+            name: 'Liters (l)',
+            value: 'l'
+        }
+    ]
     useEffect(() => {
         setProductName(product.name);
         setShortDescription(product.shortDescription);
@@ -38,6 +53,8 @@ const EditProductModal: React.FC<EditProductModalProps> = ({ product, onClose, o
         setTrackStock(product.trackStock);
         setLowStockQuantity(product.lowStockQuantity);
         setReorderQuantity(product.reorderQuantity);
+        setMeasurementUnit(product.measurementUnit);
+        setMeasurementAmount(product.measurementAmount);
     }, [product]);
 
     const handleSaveProduct = () => {
@@ -53,6 +70,8 @@ const EditProductModal: React.FC<EditProductModalProps> = ({ product, onClose, o
             trackStock,
             lowStockQuantity,
             reorderQuantity,
+            measurementUnit,
+            measurementAmount,
         };
         onSaveProduct(updatedProduct);
         onClose();
@@ -110,12 +129,37 @@ const EditProductModal: React.FC<EditProductModalProps> = ({ product, onClose, o
                                 ))}
                             </Select>
                         </div>
+                        <div className={`flex`}>
+                            <div className={`w-1/2 mb-2 mr-2`}>
+                                <Select
+                                    label="Measure"
+                                    value={measurementUnit}
+                                    onChange={(e) => setMeasurementUnit(e.target.value)}
+                                >
+                                    <option disabled={true} value="">Select Unit</option>
+                                    {unit.map((cat) => (
+                                        <option key={cat.value} value={cat.value}>
+                                            {cat.name}
+                                        </option>
+                                    ))}
+                                </Select>
+                            </div>
+                            <div className={`w-1/2 mb-2 ml-2`}>
+                                <label className={`block text-sm font-medium mb-2`}>Amount</label>
+                                <InputText
+                                    type="text"
+                                    placeholder="Measurement Amount"
+                                    value={measurementAmount}
+                                    onChange={(e) => setMeasurementAmount(Number(e.target.value))}
+                                />
+                            </div>
+                        </div>
                         <TextArea
                             placeholder="Product Description"
                             value={description}
                             onChange={(e) => setDescription(e.target.value)}
                         />
-                        <hr className="my-4" />
+                        <hr className="my-4"/>
                         <h3 className="text-lg font-semibold mb-2">Stock Management</h3>
                         <div className="mb-2">
                             <InputText

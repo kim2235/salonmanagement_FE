@@ -18,15 +18,9 @@ import {Package} from "../types/Package";
 import categories from "../testData/categories.json";
 import services from "../testData/services.json";
 import Button from "../components/ButtonComponent/Button";
+import {sidebarItems} from "./menuitems/sidebarItems";
 const categoryRawData: Category[] = categories;
 
-interface SidebarItem {
-    label: string;
-    href?: string;
-    type: 'link' | 'div';
-    id?: string;
-    active?: boolean;
-}
 type ServiceCountMap = {
     [key: string]: number; // or number if category is always a number
 };
@@ -57,6 +51,14 @@ const CatalogPage: React.FC = () => {
     const [editingService, setEditingService] = useState<Service | Package | null>(null);
     const [currStep, setCurrStep] = useState(0 );
 
+    const [activeItem, setActiveItem] = useState<string | null>('servicepackage');
+
+    const handleItemClick = (id: string, type: 'link' | 'div') => {
+        setActiveItem(id);
+        if (type === 'link') {
+            navigate(id);
+        }
+    };
     // Monitor if No Category is set Yet
     useEffect(() => {
         if (categoryData.length > 0 && catalogOption.length <= 2)
@@ -75,20 +77,6 @@ const CatalogPage: React.FC = () => {
         setIsAddCategoryModalOpen(true);
     };
 
-    const sidebarItems: SidebarItem[] = [
-        { label: 'Dashboard', href: '/', type: 'link' },
-        { label: 'Client List', href: '/clientlist', type: 'link' },
-        { label: 'Service/Package', href: '/catalog', type: 'link', active: true },
-        { label: 'Product Page', href: '/product', type: 'link'  },
-        { label: 'Sales', href: '/sales', type: 'link' },
-        { label: 'Team', href: '/team', type: 'link' },
-        { label: 'Marketing Kit', href: '/marketing', type: 'link'  },
-    ];
-
-    const handleItemClick = (id: string, type: 'link' | 'div') => {
-        setActiveItemId(id);
-    };
-
     const handleOptionSelect = (option: string | number | boolean) => {
         if (option === 'New Service') {
             setIsAddServiceModalOpen(true);
@@ -97,7 +85,7 @@ const CatalogPage: React.FC = () => {
 
     const handleAddCategory = (category: Category) => {
         setCategoryData([...categoryData, category]);
-        console.log(categoryData)
+
     };
 
     const handleAddService = (service: Service | Package) => {
@@ -192,7 +180,7 @@ const CatalogPage: React.FC = () => {
                 <div className={`${isSidebarOpen ? styles.pageLabel + ' hidden' : styles.pageLabel + ' hidden lg:block'}`}>
                     <TextView text="Catalog" />
                 </div>
-                <ClientSidebar items={sidebarItems} onItemClick={handleItemClick} />
+                <ClientSidebar items={sidebarItems} onItemClick={handleItemClick} activeItem={activeItem} />
             </div>
 
             <div className="flex-1 p-4">

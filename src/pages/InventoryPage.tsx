@@ -3,27 +3,20 @@ import React, {useEffect, useState} from 'react';
 import {FaBars, FaCalendar, FaEllipsisV, FaPlus, FaWrench} from "react-icons/fa";
 import TextView from "../components/TextViewComponent/TextView";
 import ClientSidebar from "../components/Sidebars/ClientSidebarComponent/ClientSidebar";
-import eventsPlot from "../testData/eventsPlot.json";
 import styles from "./styles/ClientStyle.module.css";
 import Button from "../components/ButtonComponent/Button";
 import InputText from "../components/InputTextComponent/InputText";
-import AddTeamMemberModalComponent from "../components/AddTeamModalComponent/AddTeamMemberModal";
 import Avatar from "../components/AvatarComponent/Avatar";
 import Popover from "../components/PopoverModalComponent/Popover";
-import AddTeamMemberModal from "../components/AddTeamModalComponent/AddTeamMemberModal";
 import AddProductModal, {Product} from "../components/AddProductModalComponent/AddProductModal";
 import AddCategoryModal, {Category} from "../components/AddCategoryModalComponent/AddCategoryModal";
-import ProductCategoryListingModal
-    from "../components/ProductCategoryListingModalComponent/ProductCategoryListingModal";
+import ProductCategoryListingModal from "../components/ProductCategoryListingModalComponent/ProductCategoryListingModal";
 import EditProductModal from "../components/EditProductModalComponent/EditProductModal";
-interface SidebarItem {
-    label: string;
-    href?: string;
-    type: 'link' | 'div';
-    id?: string;
-    active?: boolean;
-}
+import {sidebarItems} from "./menuitems/sidebarItems";
+import {useNavigate} from "react-router-dom";
+
 const InventoryPage: React.FC = () => {
+    const navigate = useNavigate();
     const [reservations, setReservations] = useState<any[]>([]);
     const [activeItemId, setActiveItemId] = useState<string | null>('clientDetail');
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
@@ -36,17 +29,13 @@ const InventoryPage: React.FC = () => {
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
     const [teamSearch, setTeamSearch] = useState<any>(null);
     const [products, setProducts] = useState<Product[]>([]);
-    const sidebarItems: SidebarItem[] = [
-        { label: 'Dashboard', href: '/', type: 'link' },
-        { label: 'Client List', href: '/clientlist', type: 'link' },
-        { label: 'Service/Package', href: '/catalog', type: 'link'},
-        { label: 'Product Page', href: '/product', type: 'link', active: true  },
-        { label: 'Sales', href: '/sales', type: 'link' },
-        { label: 'Team', href: '/team', type: 'link'  },
-        { label: 'Marketing Kit', href: '/marketing', type: 'link'  },
-    ];
+    const [activeItem, setActiveItem] = useState<string | null>('product');
+
     const handleItemClick = (id: string, type: 'link' | 'div') => {
-        setActiveItemId(id);
+        setActiveItem(id);
+        if (type === 'link') {
+            navigate(id);
+        }
     };
     useEffect(() => {
         console.log(products)
@@ -118,7 +107,7 @@ const InventoryPage: React.FC = () => {
                     className={`${isSidebarOpen ? styles.pageLabel + ' hidden' : styles.pageLabel + ' hidden lg:block'}`}>
                     <TextView text="Menu"/>
                 </div>
-                <ClientSidebar items={sidebarItems} onItemClick={handleItemClick}/>
+                <ClientSidebar items={sidebarItems} onItemClick={handleItemClick} activeItem={activeItem}/>
             </div>
 
             <div className="flex-1 p-4">
@@ -150,28 +139,34 @@ const InventoryPage: React.FC = () => {
                 </div>
                 <div className="mt-2p">
                     <div className="mt-2p flex items-center justify-start border-b border-b-gray-300">
-                        <div className="p-2 w-1/4 text-center ${styles.clientListingContentHeading}">
-                            <TextView text="Product Name" />
+                        <div className="p-2 w-1/4 text-center ">
+                            <TextView text="Product Name"/>
                         </div>
-                        <div className="p-2  w-1/4 text-center ${styles.clientListingContentHeading}">
-                            <TextView text="Category " />
+                        <div className="p-2  w-1/4 text-center">
+                            <TextView text="Product Category"/>
                         </div>
-                        <div className="p-2 w-1/4 text-center ${styles.clientListingContentHeading}">
-                            <TextView text="Supplier" />
+                        <div className="p-2 w-1/4 text-center">
+                            <TextView text="Supplier"/>
                         </div>
-                        <div className="p-2 w-1/4 text-center ${styles.clientListingContentHeading}">
-                            <TextView text="Quantity" />
+                        <div className="p-2 w-1/4 text-center">
+                            <TextView text="Quantity"/>
                         </div>
-                        <div className="p-2 w-1/4 text-center ${styles.clientListingContentHeading}">
-                            <TextView text="Actions" />
+                        <div className="p-2 w-1/4 text-center">
+                            <TextView text="Used Quantity"/>
+                        </div>
+                        <div className="p-2 w-1/4 text-center">
+                            <TextView text="Remaining Quantity"/>
+                        </div>
+                        <div className="p-2 w-1/4 text-center">
+                            <TextView text="Actions"/>
                         </div>
                     </div>
                     <div id="clientListContent">
-                        <div className={`flex flex-col m-2p justify-start`}>
+                        <div className={`mt-2p flex items-center justify-start border-b border-b-gray-300`}>
                             {products.length > 0 ? (
                                 products.map((product, index) => (
                                     <div key={product.id || index} className={`flex w-full m-2p justify-start`}>
-                                        <div className="p-2 w-1/4 flex-shrink-0 flex justify-start">
+                                        <div className="p-2 w-1/4 flex justify-start">
                                             {product.thumbnail ? (
                                                 <img
                                                     src={`/temp/productImg/bottleSample.jpg`}
@@ -195,6 +190,12 @@ const InventoryPage: React.FC = () => {
                                             <TextView text={product.stockQuantity.toString()} />
                                         </div>
                                         <div className="p-2 w-1/4 text-center">
+                                            <TextView text={product.stockQuantity.toString()} />
+                                        </div>
+                                        <div className="p-2 w-1/4 text-center">
+                                            <TextView text={product.stockQuantity.toString()} />
+                                        </div>
+                                        <div className="p-2 w-1/4 text-center">
                                             <Popover
                                                 position={`left`}
                                                 trigger={<FaEllipsisV />}
@@ -203,8 +204,12 @@ const InventoryPage: React.FC = () => {
                                                         <div onClick={() => openEditModal(product) } style={{ padding: '8px', cursor: 'pointer' }}>
                                                             Edit
                                                         </div>
+
                                                         <div onClick={() => console.log('Delete product')} style={{ padding: '8px', cursor: 'pointer' }}>
                                                             Delete
+                                                        </div>
+                                                        <div onClick={() => console.log('Delete product')} style={{ padding: '8px', cursor: 'pointer' }}>
+                                                            Historical Usage
                                                         </div>
                                                     </div>
                                                 }

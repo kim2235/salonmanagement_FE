@@ -6,27 +6,19 @@ import {FaBars} from "react-icons/fa";
 import TextView from "../components/TextViewComponent/TextView";
 import ClientSidebar from "../components/Sidebars/ClientSidebarComponent/ClientSidebar";
 import eventsPlot from "../testData/eventsPlot.json";
-interface SidebarItem {
-    label: string;
-    href?: string;
-    type: 'link' | 'div';
-    id?: string;
-    active?: boolean;
-}
+import {sidebarItems} from "./menuitems/sidebarItems";
+import {useNavigate} from "react-router-dom";
 const Home: React.FC = () => {
+    const  navigate = useNavigate();
     const [reservations, setReservations] = useState<any[]>([]);
-    const [activeItemId, setActiveItemId] = useState<string | null>('clientDetail');
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-    const sidebarItems: SidebarItem[] = [
-        { label: 'Dashboard', href: '/', type: 'link', active: true  },
-        { label: 'Client List', href: '/clientlist', type: 'link' },
-        { label: 'Service/Package', href: '/catalog', type: 'link'},
-        { label: 'Sales', href: '/sales', type: 'link' },
-        { label: 'Team', href: '/team', type: 'link' },
-        { label: 'Marketing Kit', href: '/marketing', type: 'link'  },
-    ];
+    const [activeItem, setActiveItem] = useState<string | null>('dashboard');
+
     const handleItemClick = (id: string, type: 'link' | 'div') => {
-        setActiveItemId(id);
+        setActiveItem(id);
+        if (type === 'link') {
+            navigate(id);
+        }
     };
     const handleReservationSelect = (event : CalendarEvent) => {
         const formattedEvent = {
@@ -50,7 +42,7 @@ const Home: React.FC = () => {
                 <div className={`${isSidebarOpen ? styles.pageLabel + ' hidden' : styles.pageLabel + ' hidden lg:block'}`}>
                     <TextView text="Catalog" />
                 </div>
-                <ClientSidebar items={sidebarItems} onItemClick={handleItemClick} />
+                <ClientSidebar items={sidebarItems} onItemClick={handleItemClick} activeItem={activeItem} />
             </div>
 
             <div className="flex-1 p-4 max-h-fit overflow-y-auto">

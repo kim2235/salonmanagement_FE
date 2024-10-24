@@ -12,16 +12,11 @@ import countries from '../data/country.json';
 import DropdownButton from '../components/DropdownButtonComponent/DropdownButton';
 import GetDatePicker from '../components/DatePickerComponent/GetDatePicker';
 import RadioButton from "../components/RadioButtonComponent/RadioButton";
+import {sidebarItems} from "./menuitems/sidebarItems";
 
-interface SidebarItem {
-    label: string;
-    href?: string;
-    type: 'link' | 'div';
-    id?: string;
-    active?: boolean;
-}
 const AddNewClientPage: React.FC = () => {
     const navigate = useNavigate();
+    const [activeItem, setActiveItem] = useState<string | null>('clientlist');
     const [selectedOption, setSelectedOption] = useState< string | number | boolean | null>(null);
     const [selectedGenderOption, setSelectedGenderOption] = useState<string | null>(null);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -37,16 +32,11 @@ const AddNewClientPage: React.FC = () => {
     const [province, setProvince] = useState('');
     const [zip, setZip] = useState('');
 
-    const sidebarItems: SidebarItem[] = [
-        { label: 'Dashboard', href: '/', type: 'link' },
-        { label: 'Client List', href: '/clientlist', type: 'link',active: true  },
-        { label: 'Service/Package', href: '/catalog', type: 'link'},
-        { label: 'Sales', href: '/sales', type: 'link' },
-        { label: 'Team', href: '/team', type: 'link'  },
-        { label: 'Marketing Kit', href: '/marketing', type: 'link'  },
-    ];
-    const handleItemClick =  (id: string, type: 'link' | 'div') => {
-
+    const handleItemClick = (id: string, type: 'link' | 'div') => {
+        setActiveItem(id);
+        if (type === 'link') {
+            navigate(id);
+        }
     };
 
     const countryOptions = allCountries.map((country) => ({
@@ -105,6 +95,7 @@ const AddNewClientPage: React.FC = () => {
         setSelectedRadioOption('option1');
     };
 
+
     return (
         <div id={styles.sub_container} className="flex flex-col lg:flex-row">
             <div className="lg:hidden p-4 flex justify-between items-center">
@@ -117,7 +108,7 @@ const AddNewClientPage: React.FC = () => {
                 <div className={`${isSidebarOpen ? styles.pageLabel + ' hidden' : styles.pageLabel + ' hidden lg:block'}`}>
                     <TextView text="Clients" />
                 </div>
-                <ClientSidebar items={sidebarItems} onItemClick={handleItemClick} />
+                <ClientSidebar items={sidebarItems} onItemClick={handleItemClick} activeItem={activeItem} />
             </div>
             <div className="flex-1 p-4">
                 <div id="clientHeading" className="flex items-center justify-between">

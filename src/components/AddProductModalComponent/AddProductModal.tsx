@@ -73,7 +73,8 @@ const AddProductModal: React.FC<AddProductModalProps> = ({ onClose, onAddProduct
                 lowStockQuantity,
                 reorderQuantity,
                 measurementUnit,
-                measurementAmount
+                measurementAmount,
+
             };
             onAddProduct(newProduct);
             onClose();

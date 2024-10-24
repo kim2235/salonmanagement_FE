@@ -11,31 +11,23 @@ import AddTeamMemberModalComponent from "../components/AddTeamModalComponent/Add
 import Avatar from "../components/AvatarComponent/Avatar";
 import Popover from "../components/PopoverModalComponent/Popover";
 import AddTeamMemberModal from "../components/AddTeamModalComponent/AddTeamMemberModal";
-interface SidebarItem {
-    label: string;
-    href?: string;
-    type: 'link' | 'div';
-    id?: string;
-    active?: boolean;
-}
+import {sidebarItems} from "./menuitems/sidebarItems";
+import {useNavigate} from "react-router-dom";
 const TeamMemberPage: React.FC = () => {
+    const navigate = useNavigate();
     const [reservations, setReservations] = useState<any[]>([]);
     const [activeItemId, setActiveItemId] = useState<string | null>('clientDetail');
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
     const [teamMembers, setTeamMembers] = useState<any[]>([]);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [teamSearch, setTeamSearch] = useState<any>(null);
-    const sidebarItems: SidebarItem[] = [
-        { label: 'Dashboard', href: '/', type: 'link' },
-        { label: 'Client List', href: '/clientlist', type: 'link' },
-        { label: 'Service/Package', href: '/catalog', type: 'link'},
-        { label: 'Product Page', href: '/product', type: 'link'  },
-        { label: 'Sales', href: '/sales', type: 'link' },
-        { label: 'Team', href: '/team', type: 'link', active: true  },
-        { label: 'Marketing Kit', href: '/marketing', type: 'link'  },
-    ];
+    const [activeItem, setActiveItem] = useState<string | null>('team');
+
     const handleItemClick = (id: string, type: 'link' | 'div') => {
-        setActiveItemId(id);
+        setActiveItem(id);
+        if (type === 'link') {
+            navigate(id);
+        }
     };
 
     const handleCloseModal = () => {
@@ -59,7 +51,7 @@ const TeamMemberPage: React.FC = () => {
                     className={`${isSidebarOpen ? styles.pageLabel + ' hidden' : styles.pageLabel + ' hidden lg:block'}`}>
                     <TextView text="Menu"/>
                 </div>
-                <ClientSidebar items={sidebarItems} onItemClick={handleItemClick}/>
+                <ClientSidebar items={sidebarItems} onItemClick={handleItemClick} activeItem={activeItem} />
             </div>
 
             <div className="flex-1 p-4">

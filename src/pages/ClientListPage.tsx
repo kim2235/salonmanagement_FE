@@ -14,7 +14,8 @@ import ClientProfile from "../components/SubClientComponent/ClientProfile";
 import ClientDocument from "../components/SubClientDocumentComponent/ClientDocument";
 import ClientNote from "../components/subClientNoteComponent/ClientNote";
 import clientList from "../testData/clientList.json";
-
+import {sidebarItems} from "./menuitems/sidebarItems";
+import {SidebarItem} from "./menuitems/sidebarItems";
 const clients = clientList;
 
 const clientsDocs = [
@@ -28,13 +29,7 @@ const clientsNotes = [
     { id: '11111111', name: "John Doe Insurance number", created_at: "2024-01-01", note: "/temp/sample.pdf" }
 ];
 
-interface SidebarItem {
-    label: string;
-    href?: string;
-    type: 'link' | 'div';
-    id?: string;
-    active?: boolean;
-}
+
 
 const ClientListPage: React.FC = () => {
     const navigate = useNavigate();
@@ -45,10 +40,15 @@ const ClientListPage: React.FC = () => {
     const [activeContent, setActiveContent] = useState<React.ReactNode>(<ClientProfile />);
     const [selectedOption, setSelectedOption] = useState< string | number | boolean | null>(null);
     const [activeItemId, setActiveItemId] = useState<string | null>('clientDetail'); // State to track active item
-
     const clientsPerPage = 4;
+    const [activeItem, setActiveItem] = useState<string | null>('clientlist');
 
-
+    const handleItemClick = (id: string, type: 'link' | 'div') => {
+        setActiveItem(id);
+        if (type === 'link') {
+            navigate(id);
+        }
+    };
     const handleCheckboxChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setIsChecked(event.target.checked);
     };
@@ -84,14 +84,6 @@ const ClientListPage: React.FC = () => {
         setSelectedClient(null);
     };
 
-    const sidebarItems: SidebarItem[] = [
-        { label: 'Dashboard', href: '/', type: 'link'},
-        { label: 'Client List', href: '/clientlist', type: 'link', active: true },
-        { label: 'Catalog', href: '/catalog', type: 'link' },
-        { label: 'Sales', href: '/sales', type: 'link' },
-        { label: 'Team', href: '/team', type: 'link' },
-        { label: 'Marketing Kit', href: '/marketing', type: 'link'  },
-    ];
 
     const modalSidebarItems: SidebarItem[] = [
         { label: 'Client Details', type: 'div', id: 'clientDetail' },
@@ -99,7 +91,7 @@ const ClientListPage: React.FC = () => {
         { label: 'Notes',type: 'div', id: 'notes'  },
         { label: 'Sales',type: 'div', id: 'sales' },
     ];
-    const handleItemClick =  (id: string, type: 'link' | 'div') => {
+    const handleSubItemClick =  (id: string, type: 'link' | 'div') => {
         setActiveItemId(id);
         if (type === 'div') {
             switch (id) {
@@ -140,7 +132,7 @@ const ClientListPage: React.FC = () => {
                 <div className={`${isSidebarOpen ? styles.pageLabel + ' hidden' : styles.pageLabel + ' hidden lg:block'}`}>
                     <TextView text="Clients" />
                 </div>
-                <ClientSidebar items={sidebarItems}  onItemClick={handleItemClick} />
+                <ClientSidebar items={sidebarItems}  onItemClick={handleItemClick} activeItem={activeItem} />
 
             </div>
 
@@ -264,7 +256,7 @@ const ClientListPage: React.FC = () => {
                                 </div>
                             </div>
                             <div className={`m-4 flex`}>
-                                <ClientSidebar items={sidebarItemsWithActive } onItemClick={handleItemClick} />
+                                <ClientSidebar items={sidebarItemsWithActive } onItemClick={handleSubItemClick} activeItem={activeItemId} />
                             </div>
                             <div className={`m-4 flex w-full`}>
                                 {activeContent}
