@@ -1,4 +1,4 @@
-import { FaHome, FaUsers, FaBox, FaChartLine, FaStore, FaTools, FaBullhorn } from 'react-icons/fa'; // React icons
+import { FaHome, FaUsers, FaBox, FaChartLine, FaStore, FaTools, FaBullhorn } from 'react-icons/fa';
 
 export interface SidebarItem {
     label: string;

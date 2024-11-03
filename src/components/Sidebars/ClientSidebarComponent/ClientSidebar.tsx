@@ -18,13 +18,15 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ items, onItemClick, activeItem }) => {
     return (
-        <div className="w-48 p-4 overflow-y-auto h-full bg-gray-100">
+        <div className="w-48 p-4 overflow-y-auto h-fit">
             <ul className="mt-4 space-y-2">
                 {items.map((item) => (
                     <li
                         key={item.id}
                         className={`flex items-center p-2 rounded cursor-pointer transition ${
-                            activeItem === item.id ? styles.activeButton : styles.navButtonHover // Check if this item is active
+                            item.active
+                                ? 'bg-green-200 border border-green-300 shadow-lg'
+                                : 'border border-gray-100 hover:bg-green-200 hover:shadow-md'
                         }`}
                         onClick={() => onItemClick(item.id, item.type)} // Pass both id and type
                     >

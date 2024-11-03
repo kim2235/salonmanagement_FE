@@ -1,12 +1,16 @@
 import React, {useContext, useEffect, useState} from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import {RootState, AppDispatch} from "../redux/store";
+import { addCategory, updateCategory,deleteCategory } from '../redux/slices/categoriesSlice';
+import { addOrUpdateService  } from '../redux/slices/serviceSlice';
+import { addOrUpdatePackage  } from '../redux/slices/packageSlice';
 import TextView from "../components/TextViewComponent/TextView";
 import ClientSidebar from "../components/Sidebars/ClientSidebarComponent/ClientSidebar";
 import styles from './styles/ClientStyle.module.css';
 import InputText from "../components/InputTextComponent/InputText";
 import DropdownButton from "../components/DropdownButtonComponent/DropdownButton";
 import { useNavigate } from 'react-router-dom';
-import {FaPlus, FaBars, FaEllipsisV, FaCalendar} from 'react-icons/fa';
-import ClientProfile from "../components/SubClientComponent/ClientProfile";
+import {FaPlus, FaBars, FaEllipsisV} from 'react-icons/fa';
 import AddCategoryModal from "../components/AddCategoryModalComponent/AddCategoryModal";
 import { Category } from "../components/AddCategoryModalComponent/AddCategoryModal"
 import AddServiceModal from "../components/AddServiceModalComponent/AddServiceModal";
@@ -26,6 +30,7 @@ type ServiceCountMap = {
 };
 const CatalogPage: React.FC = () => {
     const   navigate = useNavigate();
+    const dispatch = useDispatch<AppDispatch>();
     const contextService = useContext(servicesContext);
     const contextPackage = useContext(packagesContext);
 
@@ -33,26 +38,22 @@ const CatalogPage: React.FC = () => {
         throw new Error('AddServiceModal must be used within a ServicesProvider');
     }
 
-    const { valueService, setValueService } = contextService;
-    const { valuePackage, setValuePackage } = contextPackage;
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-    const [catalogOption, setCatalogOption] = useState<string[]>(['Catalog', 'New Category']);
-    const [categoryData, setCategoryData] = useState<Category[]>(categoryRawData?.length ? categoryRawData : []);
 
-    const [serviceCollection, setServiceCollection] = useState<{ [key: number]: Service[] }>(services);
-    const [packageCollection, setPackageCollection] = useState<{ [key: string]: Package[] }>({});
+    const categories = useSelector((state: RootState) => state.categories.categories);
+    const services = useSelector((state: RootState) => state.services.valueService || []);
+    const packages = useSelector((state: RootState) => state.packages.valuePackage || []);
+
     const [isAddCategoryModalOpen, setIsAddCategoryModalOpen] = useState(false);
-    const [isAddProductModalOpen, setIsAddProductModalOpen] = useState(false);
+
     const [isAddServiceModalOpen, setIsAddServiceModalOpen] = useState(false);
 
-    const [activeContent, setActiveContent] = useState<React.ReactNode>(<ClientProfile />);
-    const [activeItemId, setActiveItemId] = useState<string | null>('clientDetail');
     const sortOptions = ['Created at (Newest first)', 'Created at (Oldest first)'];
     const [editingService, setEditingService] = useState<Service | Package | null>(null);
     const [currStep, setCurrStep] = useState(0 );
 
-    const [activeItem, setActiveItem] = useState<string | null>('servicepackage');
-
+    const [activeItem, setActiveItem] = useState<string | null>('catalog');
+    const [serviceDisabled, setServiceDisabled] = useState<boolean>(true);
     const handleItemClick = (id: string, type: 'link' | 'div') => {
         setActiveItem(id);
         if (type === 'link') {
@@ -61,11 +62,11 @@ const CatalogPage: React.FC = () => {
     };
     // Monitor if No Category is set Yet
     useEffect(() => {
-        if (categoryData.length > 0 && catalogOption.length <= 2)
+        if (categories.length > 0 )
         {
-            setCatalogOption(['Catalog', 'New Service', 'New Category']);
+            setServiceDisabled(false);
         }
-    }, [catalogOption.length, categoryData]);
+    }, [categories.length]);
     useEffect(() => {
         if(!isAddServiceModalOpen)
         {
@@ -74,6 +75,7 @@ const CatalogPage: React.FC = () => {
 
     }, [isAddServiceModalOpen]);
     const handleClick = () => {
+
         setIsAddCategoryModalOpen(true);
     };
 
@@ -84,55 +86,7 @@ const CatalogPage: React.FC = () => {
     };
 
     const handleAddCategory = (category: Category) => {
-        setCategoryData([...categoryData, category]);
-
-    };
-
-    const handleAddService = (service: Service | Package) => {
-
-            if ('category' in service) {  // Type guard to check if service is a Service
-                setServiceCollection((prevCollection) => {
-                    const newCollection = { ...prevCollection };
-                    // Check if the category already exists
-                    if (!newCollection[service.category]) {
-                        newCollection[service.category] = [];
-                    }
-
-                    // Find the index of the existing service, if it exists
-                    const existingServiceIndex = newCollection[service.category].findIndex(s => s.id === service.id);
-
-                    if (existingServiceIndex !== -1) {
-                        // Update the existing service
-                        newCollection[service.category][existingServiceIndex] = service;
-                    } else {
-                        // Add the new service
-                        newCollection[service.category].push(service);
-                    }
-                        if (contextService) {
-                            setValueService(newCollection); // Make sure `setValue` is expecting the correct type
-                        }
-
-                    return newCollection;
-                });
-
-            } else {
-                setPackageCollection((prevCollection) => {
-                    const newCollection = { ...prevCollection };
-
-                    const key = service.id;
-
-                    if (!newCollection[key]) {
-                        newCollection[key] = [];
-                    }
-
-                    newCollection[key].push(service);
-
-                    if (contextPackage) {
-                        setValuePackage(newCollection); // Make sure `setValue` is expecting the correct type
-                    }
-                    return newCollection;
-                });
-            }
+        dispatch(addCategory(category));
     };
 
 
@@ -151,18 +105,10 @@ const CatalogPage: React.FC = () => {
         console.log("Delete clicked " + id);
 
         // Remove from categoryData
-        setCategoryData(prevCategoryData => prevCategoryData.filter(category => category.id !== id));
+        dispatch(deleteCategory(id));
 
-        // Remove from serviceCollection
-        setServiceCollection(prevCollection => {
-            const newCollection = { ...prevCollection };
-            Object.keys(newCollection).forEach(categoryId => {
-                newCollection[parseInt(categoryId)] = newCollection[parseInt(categoryId)].filter(service => service.id !== id);
-            });
-            return newCollection;
-        });
     };
-    const serviceCounts = Object.values(serviceCollection).flat().reduce<ServiceCountMap>((acc, service) => {
+    const serviceCounts = Object.values(services).flat().reduce<ServiceCountMap>((acc, service) => {
         // Use the correct property name based on your Service type
         const categoryId = service.category; // Assuming the property name is 'category'
         acc[categoryId] = (acc[categoryId] || 0) + 1; // Increment the count
@@ -198,11 +144,9 @@ const CatalogPage: React.FC = () => {
                         </div>
                     </div>
                     <div className="flex items-center justify-between">
-                        <div className={`mr-2`}><Button onClick={() => (setIsAddServiceModalOpen(true))}><FaPlus
+                        <div className={`mr-2`}><Button  disabled={serviceDisabled} onClick={() => (setIsAddServiceModalOpen(true))}><FaPlus
                             className="mr-2"/>Add Service</Button></div>
-                        <div className={`ml-2 mr-2`}><Button onClick={() => (setIsAddProductModalOpen(true))}><FaPlus
-                            className="mr-2 ml-2"/>Add New Product</Button>
-                        </div>
+
                         <div className={`ml-2`}><Button onClick={() => (setIsAddCategoryModalOpen(true))}><FaPlus/>Add
                             Category
                         </Button>
@@ -236,9 +180,9 @@ const CatalogPage: React.FC = () => {
 
                                             </div>
                                         </div>
-                                        {categoryData.map((category) => (
+                                        {categories.map((category) => (
                                             <div key={category.id} className={`m-2 pl-4 flex items-center border-l-4`}
-                                                 style={{ borderColor: category.appointmentColor }}>
+                                                 style={{ borderColor: category?.appointmentColor || 'gray' }}>
                                                 <div className="w-full flex justify-between">
                                                     <div className="mr-3">
                                                         <TextView text={category.name} />
@@ -270,11 +214,15 @@ const CatalogPage: React.FC = () => {
                         <div className="w-1/2">
                             <div key='packageListing'>
                                 <div className="text-2xl font-bold">
-                                    Packages Available
+                                    Package Available
                                 </div>
                                 <div>
-                                    {Object.keys(packageCollection).map((id) => {
-                                        const packaging = packageCollection[id]; // Access the package by id
+                                    {packages && Object.keys(packages).length > 0 && Object.keys(packages).map((id) => {
+                                        const packaging = packages[parseInt(id)]; // Access the package by id
+
+                                        if (!packaging) {
+                                            return null; // or handle the undefined case
+                                        }
                                         return (
                                             <div key={id}>
                                                 {/* Render the package data, assuming 's' is an array of packages */}
@@ -327,23 +275,25 @@ const CatalogPage: React.FC = () => {
                                 <div className="text-2xl font-bold">
                                     Services Available
                                 </div>
-                                {Object.keys(serviceCollection).map((categoryId) => {
-                                    const services = serviceCollection[parseInt(categoryId)];
-                                    const categoryName = categoryData.find(cat => cat.id === parseInt(categoryId))?.name || 'Unknown Category';
+                                { services && Object.keys(services).length > 0 && Object.keys(services).map((categoryId) => {
+                                    const categoryServices = services[parseInt(categoryId)] || []; // Renamed for clarity
+                                    const categoryName = categories.find(cat => cat.id === parseInt(categoryId))?.name || 'Unknown Category';
+                                    const categoryColor = categories.find(cat => cat.id === parseInt(categoryId))?.appointmentColor || 'gray';
+
                                     return (
                                         <div key={categoryId}>
                                             <div className="text-xl font-bold">
                                                 {categoryName}
                                             </div>
                                             <div>
-                                                {services.map(service => (
-                                                    <div key={service.id} className={`border mt-2 mb-2 p-2p rounded-md`}
+                                                {categoryServices.map(service => (
+                                                    <div key={service.id} className="border mt-2 mb-2 p-2 rounded-md"
                                                          style={{
                                                              borderLeftWidth: '8px',
-                                                             borderLeftColor: categoryData[categoryData.findIndex(item => item.id === service.category)].appointmentColor
+                                                             borderLeftColor: categoryColor
                                                          }}>
-                                                        <div className={`flex flex-row`}>
-                                                            <div className={`w-1/2`}>
+                                                        <div className="flex flex-row">
+                                                            <div className="w-1/2">
                                                                 {service.name} - {service.description}
                                                             </div>
                                                             <div className="w-1/2 ml-auto">
@@ -354,36 +304,37 @@ const CatalogPage: React.FC = () => {
                                                                     <div>
                                                                         <Popover
                                                                             trigger={<FaEllipsisV/>}
-                                                                            content={<div>
-                                                                                <div
-                                                                                    onClick={() => handleEditClick(service)}
-                                                                                    style={{
-                                                                                        padding: '8px',
-                                                                                        cursor: 'pointer'
-                                                                                    }}>Edit
+                                                                            content={
+                                                                                <div>
+                                                                                    <div
+                                                                                        onClick={() => handleEditClick(service)}
+                                                                                        style={{
+                                                                                            padding: '8px',
+                                                                                            cursor: 'pointer'
+                                                                                        }}>Edit
+                                                                                    </div>
+                                                                                    <div
+                                                                                        onClick={() => handleDeleteClick(service.id)}
+                                                                                        style={{
+                                                                                            padding: '8px',
+                                                                                            cursor: 'pointer'
+                                                                                        }}>Delete
+                                                                                    </div>
                                                                                 </div>
-                                                                                <div
-                                                                                    onClick={() => handleDeleteClick(service.id)}
-                                                                                    style={{
-                                                                                        padding: '8px',
-                                                                                        cursor: 'pointer'
-                                                                                    }}>Delete
-                                                                                </div>
-                                                                            </div>}
+                                                                            }
                                                                             position="left"
                                                                         />
                                                                     </div>
                                                                 </div>
                                                             </div>
-
                                                         </div>
                                                     </div>
                                                 ))}
                                             </div>
-
                                         </div>
                                     );
                                 })}
+
                             </div>
 
                         </div>
@@ -393,8 +344,7 @@ const CatalogPage: React.FC = () => {
             {isAddCategoryModalOpen && <AddCategoryModal onClose={() => setIsAddCategoryModalOpen(false)}
                                                          onAddCategory={handleAddCategory}/>}
             {isAddServiceModalOpen && <AddServiceModal onClose={() => setIsAddServiceModalOpen(false)}
-                                                       onAddService={handleAddService}
-                                                       option={categoryData.map(category => ({
+                                                       option={categories.map(category => ({
                                                            label: category.name,
                                                            value: category.id
                                                        }))}

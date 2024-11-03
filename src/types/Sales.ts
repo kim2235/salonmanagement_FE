@@ -17,7 +17,7 @@ export interface SalesItems {
     salesId: number;
     name: string;
     cost: number;
-    category: number;
+    category: number | string;
     description: string;
     appointmentColor:  string | undefined;
 }

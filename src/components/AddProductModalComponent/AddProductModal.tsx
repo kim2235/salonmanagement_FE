@@ -1,49 +1,41 @@
 import React, { useState } from 'react';
+import { useDispatch } from 'react-redux';
+import { addOrUpdateProduct } from '../../redux/slices/productSlice';
 import { FaPlus } from 'react-icons/fa';
 import Button from '../ButtonComponent/Button';
 import { generateMicrotime } from '../../utilities/microTimeStamp';
-import { Category } from "../AddCategoryModalComponent/AddCategoryModal"; // Assuming this is the correct import
-import InputText from '../InputTextComponent/InputText'; // Import your reusable InputText component
+import { Category } from "../AddCategoryModalComponent/AddCategoryModal";
+import {Product} from "../../types/Product";
+import InputText from '../InputTextComponent/InputText';
 import TextArea from '../TextAreaComponent/TextArea';
-import Select from "../SelectComponent/Select"; // Import your reusable Select component
+import Select from "../SelectComponent/Select";
 
-export interface Product {
-    id: string | number;
-    name: string;
-    shortDescription: string;
-    category: string;
-    description: string;
-    created_at: string;
-    thumbnail: string; // URL or base64 string of the thumbnail
-    supplier: string; // New field
-    stockQuantity: number; // New field
-    trackStock: boolean; // New field
-    lowStockQuantity: number; // New field
-    reorderQuantity: number; // New field
-    measurementUnit: string; // New field
-    measurementAmount: number; // New field
-}
+
 
 interface AddProductModalProps {
     onClose: () => void;
-    onAddProduct: (product: Product) => void;
-    categories: Category[]; // Array of categories for dropdown
+    categories: Category[];
 }
 
-const AddProductModal: React.FC<AddProductModalProps> = ({ onClose, onAddProduct, categories }) => {
-    const [productName, setProductName] = useState<string>('');
-    const [shortDescription, setShortDescription] = useState<string>('');
-    const [category, setCategory] = useState<string>('');
-    const [description, setDescription] = useState<string>('');
-    const [thumbnail, setThumbnail] = useState<string>(''); // Base64 string or URL for the image preview
-    const [supplier, setSupplier] = useState<string>(''); // New state
-    const [stockQuantity, setStockQuantity] = useState<number>(1); // New state
-    const [trackStock, setTrackStock] = useState<boolean>(false); // New state
-    const [lowStockQuantity, setLowStockQuantity] = useState<number>(1); // New state
-    const [reorderQuantity, setReorderQuantity] = useState<number>(1); // New state
-    const [measurementUnit, setMeasurementUnit] = useState<string>('ml'); // New state
-    const [measurementAmount, setMeasurementAmount] = useState<number>(1); // New state
-    const unit = [
+const AddProductModal: React.FC<AddProductModalProps> = ({ onClose, categories }) => {
+    const dispatch = useDispatch();
+    const [formData, setFormData] = useState({
+        productName: '',
+        shortDescription: '',
+        category: '',
+        description: '',
+        thumbnail: '',
+        supplier: '',
+        stockQuantity: 1,
+        stockQuantityUsed: 0,
+        stockQuantityRemaining:1,
+        trackStock: false,
+        lowStockQuantity: 1,
+        reorderQuantity: 1,
+        measurementUnit: 'ml',
+        measurementAmount: 1,
+    });
+    const unitOptions = [
         {
             name: 'Milliliters (ml)',
             value: 'ml'
@@ -57,26 +49,42 @@ const AddProductModal: React.FC<AddProductModalProps> = ({ onClose, onAddProduct
             value: 'l'
         }
     ]
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+        const { name, value } = e.target;
+        let newValue: string | number | boolean = value;
+
+        if (e.target instanceof HTMLInputElement && e.target.type === 'checkbox') {
+            newValue = e.target.checked;
+        } console.log("Input changed:", name, newValue);
+
+        setFormData((prevData) => ({
+            ...prevData,
+            [name]: newValue,
+        }));
+    };
+
     const handleAddProduct = () => {
-        if (productName.trim() && shortDescription.trim() && category && description.trim() && thumbnail) {
+        if (formData.productName && formData.shortDescription && formData.category && formData.description && formData.thumbnail) {
             const newProduct: Product = {
                 id: generateMicrotime(),
-                name: productName,
-                shortDescription,
-                category,
-                description,
+                name: formData.productName,
+                shortDescription: formData.shortDescription,
+                category: formData.category,
+                description: formData.description,
                 created_at: new Date().toISOString(),
-                thumbnail,
-                supplier,
-                stockQuantity,
-                trackStock,
-                lowStockQuantity,
-                reorderQuantity,
-                measurementUnit,
-                measurementAmount,
-
+                thumbnail: formData.thumbnail,
+                supplier: formData.supplier,
+                stockQuantity: formData.stockQuantity,
+                stockQuantityUsed: 0,
+                stockQuantityRemaining: formData.stockQuantity,
+                trackStock: formData.trackStock,
+                lowStockQuantity: formData.lowStockQuantity,
+                reorderQuantity: formData.reorderQuantity,
+                measurementUnit: formData.measurementUnit,
+                measurementAmount: formData.measurementAmount,
             };
-            onAddProduct(newProduct);
+            dispatch(addOrUpdateProduct(newProduct));
             onClose();
         }
     };
@@ -87,7 +95,7 @@ const AddProductModal: React.FC<AddProductModalProps> = ({ onClose, onAddProduct
         if (file) {
             const reader = new FileReader();
             reader.onloadend = () => {
-                setThumbnail(reader.result as string);
+                setFormData((prevData) => ({ ...prevData, thumbnail: reader.result as string }));
             };
             reader.readAsDataURL(file);
         }
@@ -108,25 +116,21 @@ const AddProductModal: React.FC<AddProductModalProps> = ({ onClose, onAddProduct
                     <div className={`flex-1 pr-4`}>
                         <div className={`mb-2`}>
                             <InputText
+                                name="productName"
                                 placeholder="Product Name"
-                                value={productName}
-                                onChange={(e) => setProductName(e.target.value)}
+                                value={formData.productName} onChange={handleInputChange}
                             />
                         </div>
                         <div className={`mb-2`}>
                             <InputText
+                                name="shortDescription"
                                 placeholder="Product Short Description"
-                                value={shortDescription}
-                                onChange={(e) => setShortDescription(e.target.value)}
+                                value={formData.shortDescription} onChange={handleInputChange}
                             />
                         </div>
 
                         <div className={`mb-2`}>
-                            <Select
-                                label="Product Category"
-                                value={category}
-                                onChange={(e) => setCategory(e.target.value)}
-                            >
+                            <Select name="category" label="Product Category" value={formData.category} onChange={handleInputChange}>
                                 <option value="">Select Category</option>
                                 {categories.map((cat) => (
                                     <option key={cat.id} value={cat.id}>
@@ -137,15 +141,11 @@ const AddProductModal: React.FC<AddProductModalProps> = ({ onClose, onAddProduct
                         </div>
                         <div className={`flex`}>
                             <div className={`w-1/2 mb-2 mr-2`}>
-                                <Select
-                                    label="Measure"
-                                    value={measurementUnit}
-                                    onChange={(e) => setMeasurementUnit(e.target.value)}
-                                >
-                                    <option disabled={true} value="">Select Unit</option>
-                                    {unit.map((cat) => (
-                                        <option key={cat.value} value={cat.value}>
-                                            {cat.name}
+                                <Select name="measurementUnit" label="Measure" value={formData.measurementUnit} onChange={handleInputChange}>
+                                    <option disabled value="">Select Unit</option>
+                                    {unitOptions.map((unit) => (
+                                        <option key={unit.value} value={unit.value}>
+                                            {unit.name}
                                         </option>
                                     ))}
                                 </Select>
@@ -153,17 +153,17 @@ const AddProductModal: React.FC<AddProductModalProps> = ({ onClose, onAddProduct
                             <div className={`w-1/2 mb-2 ml-2`}>
                                 <label className={`block text-sm font-medium mb-2`}>Amount</label>
                                 <InputText
+                                    name="measurementAmount"
                                     type="text"
                                     placeholder="Measurement Amount"
-                                    value={measurementAmount}
-                                    onChange={(e) => setMeasurementAmount(Number(e.target.value))}
+                                    value={formData.measurementAmount} onChange={handleInputChange}
                                 />
                             </div>
                         </div>
                         <TextArea
+                            name="description"
                             placeholder="Product Description"
-                            value={description}
-                            onChange={(e) => setDescription(e.target.value)}
+                            value={formData.description} onChange={handleInputChange}
                         />
 
                         {/* Divider and Stock Management Section */}
@@ -171,26 +171,26 @@ const AddProductModal: React.FC<AddProductModalProps> = ({ onClose, onAddProduct
                         <h3 className={`text-lg font-semibold mb-2`}>Stock Management</h3>
                         <div className={`mb-2`}>
                             <InputText
+                                name="supplier"
                                 placeholder="Supplier"
-                                value={supplier}
-                                onChange={(e) => setSupplier(e.target.value)}
+                                value={formData.supplier} onChange={handleInputChange}
                             />
                         </div>
                         <div className={`mb-2`}>
                             <label className={`block text-sm font-medium mb-1`}>Current Stock Quantity</label>
                             <InputText
+                                name={`stockQuantity`}
                                 type="number"
                                 placeholder="Current Stock Quantity"
-                                value={stockQuantity}
-                                onChange={(e) => setStockQuantity(Number(e.target.value))}
+                                value={formData.stockQuantity} onChange={handleInputChange}
                             />
                         </div>
 
                         <div className={`flex items-center mb-4`}>
                             <input
+                                name={`trackStock`}
                                 type="checkbox"
-                                checked={trackStock}
-                                onChange={() => setTrackStock(!trackStock)}
+                                checked={formData.trackStock} onChange={handleInputChange}
                                 className={`mr-2`}
                             />
                             <label>Track Stock?</label>
@@ -204,19 +204,19 @@ const AddProductModal: React.FC<AddProductModalProps> = ({ onClose, onAddProduct
                                 <div className={`w-1/2 mb-2 mr-2`}>
                                     <label className={`block text-sm font-medium mb-1`}>Low Stock Level</label>
                                     <InputText
+                                        name={`lowStockQuantity`}
                                         type="number"
                                         placeholder="Low Stock Quantity"
-                                        value={lowStockQuantity}
-                                        onChange={(e) => setLowStockQuantity(Number(e.target.value))}
+                                        value={formData.lowStockQuantity} onChange={handleInputChange}
                                     />
                                 </div>
                                 <div className={`w-1/2 mb-2 ml-2`}>
                                     <label className={`block text-sm font-medium mb-1`}>Reorder Quantity</label>
                                     <InputText
+                                        name={`reorderQuantity`}
                                         type="number"
                                         placeholder="Reorder Quantity"
-                                        value={reorderQuantity}
-                                        onChange={(e) => setReorderQuantity(Number(e.target.value))}
+                                        value={formData.reorderQuantity} onChange={handleInputChange}
                                     />
                                 </div>
                             </div>
@@ -225,19 +225,10 @@ const AddProductModal: React.FC<AddProductModalProps> = ({ onClose, onAddProduct
                     </div>
                     <div className={`w-1/3 flex flex-col items-center`}>
                         <label className={`block text-sm font-medium mb-2`}>Upload Thumbnail</label>
-                        <input
-                            type="file"
-                            accept="image/*"
-                            onChange={handleFileChange}
-                            className={`mb-2 border p-2 w-full`}
-                        />
-                        {thumbnail && (
-                            <div className={`mt-2`}>
-                                <img
-                                    src={thumbnail}
-                                    alt="Thumbnail Preview"
-                                    className={`w-full h-48 object-cover rounded border`}
-                                />
+                        <input name={`thumbnail`} type="file" accept="image/*" onChange={handleFileChange} className="mb-2 border p-2 w-full" />
+                        {formData.thumbnail && (
+                            <div className="mt-2">
+                                <img src={formData.thumbnail} alt="Thumbnail Preview" className="w-full h-48 object-cover rounded border" />
                             </div>
                         )}
                     </div>

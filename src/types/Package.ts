@@ -7,7 +7,10 @@ export interface Package {
     services: SelectedService[];
     pricingType: string;
     price: number;
+    cost?: number;
     duration: string;
+    category?: number | string;
+    aftercareDescription?: string;
     created_at: string;
 
 }

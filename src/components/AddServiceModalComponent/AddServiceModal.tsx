@@ -1,4 +1,6 @@
-import React, {useState, useContext, useEffect} from 'react';
+import React, { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState, AppDispatch } from "../../redux/store";
 import { FaBox, FaFolder, FaPlus } from 'react-icons/fa';
 import Button from '../ButtonComponent/Button';
 import InputText from '../InputTextComponent/InputText';
@@ -7,111 +9,137 @@ import { v4 as uuidv4 } from 'uuid';
 import DropdownButton, { Option } from "../DropdownButtonComponent/DropdownButton";
 import TextArea from "../TextAreaComponent/TextArea";
 import MultiSelectDropdown from "../MultiSelectDropdownComponent/MultiSelectDropdown";
-import { servicesContext } from "../../context/servicesContext";
-import { packagesContext} from "../../context/packagesContext";
-import { Service, SelectedService} from "../../types/Service";
-import { Package} from "../../types/Package";
+import { Service, SelectedService } from "../../types/Service";
+import { Package } from "../../types/Package";
 import pricingOptions from "../../data/pricingOptions.json";
-import { generateMicrotime} from "../../utilities/microTimeStamp";
+import { generateMicrotime } from "../../utilities/microTimeStamp";
+import { addOrUpdateService } from "../../redux/slices/serviceSlice";
+import { addOrUpdatePackage } from "../../redux/slices/packageSlice";
+import {Category} from "../AddCategoryModalComponent/AddCategoryModal";
+import Select from "../SelectComponent/Select";
 
 interface AddServiceModalProps {
     onClose: () => void;
     option: Option[];
-    onAddService: (service: Service | Package) => void;
-    serviceToEdit?: Service | Package| null;
+    serviceToEdit?: Service | Package | null;
     forceStep?: number;
 }
 
-const AddServiceModal: React.FC<AddServiceModalProps> = ({ onClose, onAddService,  option, forceStep = 0, serviceToEdit }) => {
-    const contextService = useContext(servicesContext);
-    const contextPackage = useContext(packagesContext);
+interface ServiceState {
+    serviceCategory: number | string;
+    serviceDescription: string;
+    packageDescription: string;
+    aftercareDescription: string;
+    serviceCost: number;
+    packageCost: number;
+    packageDuration: string;
+}
 
-    if (!contextService || !contextPackage) {
-        throw new Error('AddServiceModal must be used within a ServicesProvider');
-    }
+const AddServiceModal: React.FC<AddServiceModalProps> = ({
+                                                             onClose,
+                                                             option,
+                                                             forceStep = 0,
+                                                             serviceToEdit
+                                                         }) => {
+    const dispatch = useDispatch<AppDispatch>();
+    const valueService = useSelector((state: RootState) => state.services.valueService);
+    const categories = useSelector((state: RootState) => state.categories.categories); // Access categories from the Redux store
 
-    const { valueService } = contextService; // Get the Values of Current services.json
-    const { valuePackage } = contextPackage; // Get the Values of Current services.json
-
-    const [step, setStep] = useState<number>(forceStep); // 0: Initial Buttons, 1: Form
+    const [step, setStep] = useState<number>(forceStep);
     const [serviceName, setServiceName] = useState<string>(serviceToEdit ? serviceToEdit.name : '');
     const [packageName, setPackageName] = useState<string>(serviceToEdit ? serviceToEdit.name : '');
-    const [serviceCategory, setServiceCategory] = useState<number>(() => {
-        if (serviceToEdit && 'category' in serviceToEdit) {
-            return serviceToEdit.category;
-        }
-        return 0;
+    const [additionalInventoryFields, setAdditionalInventoryFields] = useState<unknown[]>([]); // Use `unknown` for type safety
+
+    const [formData, setFormData] = useState<ServiceState>({
+        serviceCategory: serviceToEdit?.category || 0,
+        serviceDescription: serviceToEdit?.description || '',
+        packageDescription: serviceToEdit?.description || '',
+        aftercareDescription: serviceToEdit?.aftercareDescription || '',
+        serviceCost: serviceToEdit?.cost || 0,
+        packageCost: serviceToEdit?.price || 0,
+        packageDuration: serviceToEdit?.duration || '',
     });
-    const [serviceDescription, setServiceDescription] = useState<string>(serviceToEdit ? serviceToEdit.description : '');
-    const [packageDescription, setPackageDescription] = useState<string>(serviceToEdit ? serviceToEdit.description : '');
-    const [aftercareDescription, setAftercareDescription] = useState<string>(() => {
-        if (serviceToEdit && 'aftercareDescription' in serviceToEdit) {
-            return serviceToEdit.aftercareDescription;
-        }
-        return '';
-    });
-    const [serviceCost, setServiceCost] = useState<number>(() => {
-        if (serviceToEdit && 'cost' in serviceToEdit) {
-            return serviceToEdit.cost;
-        }
-        return 0;
-    });
-    const [packageCost, setPackageCost] = useState<string | number>(() => {
-        if (serviceToEdit && 'price' in serviceToEdit) {
-            return serviceToEdit.price;
-        }
-        return '';
-    });
-    const [packageDuration, setPackageDuration] = useState<string>(() => {
-        if (serviceToEdit && 'duration' in serviceToEdit) {
-            return serviceToEdit.duration;
-        }
-        return '';
-    });
+
+    const handleInputChange = (name: string) => (event: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>) => {
+        const { value } = event.target;
+        setFormData((prevData) => ({
+            ...prevData,
+            [name]: value, // Update the state with the new value
+        }));
+    };
+
     const [errors, setErrors] = useState<{ [key: string]: string }>({});
     const [serviceType, setServiceType] = useState<'single' | 'package' | null>(null);
     const [usedService, setUsedService] = useState<SelectedService[]>([]);
-    const [pricingType, setPricingType] = useState<string>('');
 
     useEffect(() => {
-        if (setUsedService.length > 0 )
-        {
-            const totalPrice = usedService.reduce((sum, service) => sum + service.price, 0).toFixed(2);
-            setPackageCost(totalPrice.toString());
+        if (usedService.length > 0) {
+            const totalPrice = usedService.reduce((sum, service) => {
+                // Ensure service.price is a number; if not, default to 0
+                const price = typeof service.price === 'number' ? service.price : Number(service.price) || 0;
+                return sum + price;
+            }, 0); // Start with 0
+
+            setFormData((prevData) => ({
+                ...prevData,
+                packageCost: Number(totalPrice.toFixed(2)), // Format totalPrice to two decimal places
+            }));
         }
-    }, [ usedService]);
-    const validateFields = () => {
-        const newErrors: { [key: string]: string } = {};
-        if(Number(step) === 1){
+    }, [usedService]);
+
+
+    const validateForm = () => {
+        const newErrors: Record<string, string> = {};
+
+        if (step === 1) {
             if (!serviceName.trim()) newErrors.serviceName = 'Service name is required';
-            if (serviceCategory === 0) newErrors.serviceCategory = 'Service category is required';
-            if (!serviceDescription.trim()) newErrors.serviceDescription = 'Service description is required';
-            if (serviceCost <= 0) newErrors.serviceCost = 'Service cost must be greater than 0';
+            if (formData.serviceCategory === 0) newErrors.serviceCategory = 'Service category is required';
+            if (formData.serviceDescription === '') newErrors.serviceDescription = 'Service description is required';
+            if (formData.serviceCost <= 0) newErrors.serviceCost = 'Service cost must be greater than 0';
         }
+
         return newErrors;
+    };
+    const handleServiceChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+        const { value } = event.target; // Get the value of the textarea
+        setFormData({
+            ...formData,
+            serviceDescription: value, // Update the state with the new value
+        });
+    };
+    const handlePackageChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+        const { value } = event.target; // Get the value of the textarea
+        console.log(value)
+        setFormData({
+            ...formData,
+            packageDescription: value, // Update the state with the new value
+        });
+
     };
 
     const handleAddService = () => {
-        const validationErrors = validateFields();
+        const validationErrors = validateForm();
+        console.log(formData)
         if (Object.keys(validationErrors).length > 0) {
             setErrors(validationErrors);
         } else {
             const newService: Service = {
                 id: serviceToEdit ? serviceToEdit.id : generateMicrotime(),
                 name: serviceName,
-                category: serviceCategory,
-                description: serviceDescription,
-                aftercareDescription,
-                cost: serviceCost,
+                category: formData.serviceCategory,
+                description: formData.serviceDescription,
+                aftercareDescription: formData.aftercareDescription,
+                cost: formData.serviceCost,
                 created_at: serviceToEdit ? serviceToEdit.created_at : new Date().toISOString(),
             };
-            onAddService(newService);
-            handleGoBack();
+
+            dispatch(addOrUpdateService(newService));
             onClose();
         }
     };
+
     const handleAddPackage = () => {
-        const validationErrors = validateFields();
+        const validationErrors = validateForm();
 
         if (Object.keys(validationErrors).length > 0) {
             setErrors(validationErrors);
@@ -119,15 +147,16 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({ onClose, onAddService
             const newPackage: Package = {
                 id: serviceToEdit ? serviceToEdit.id : generateMicrotime(),
                 name: packageName,
-                description: packageDescription,
+                description: formData.packageDescription,
                 services: usedService,
-                pricingType:pricingType,
-                price: Number(packageCost),
-                duration: packageDuration,
+                pricingType: '', // Set this as needed
+                price: Number(formData.packageCost),
+                duration: formData.packageDuration,
                 created_at: serviceToEdit ? serviceToEdit.created_at : new Date().toISOString(),
             };
-            onAddService(newPackage);
 
+            dispatch(addOrUpdatePackage(newPackage));
+            console.log(newPackage)
             handleGoBack();
             onClose();
         }
@@ -141,19 +170,28 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({ onClose, onAddService
     const handleGoBack = () => {
         setStep(0);
     };
+
     const handleSelectionChange = (selectedServices: Service[]) => {
         const services = selectedServices.map(s => ({
-                id: s.id,
-                serviceName: s.name,
-                category: s.category,
-                price: s.cost
-            })
-        );
+            id: s.id,
+            serviceName: s.name,
+            category: s.category,
+            price: s.cost
+        }));
         setUsedService(services);
     };
+    const options = categories.map((category: Category) => ({
+        label: category.name,  // Assuming Category has a 'name' property
+        value: category.id,     // Assuming Category has an 'id' property
+    }));
+
+    const addInventoryFields = () => {
+        setAdditionalInventoryFields([...additionalInventoryFields, {}, {}]); // Add two new entries
+    };
+
     return (
         <div className="fixed inset-0 flex justify-center items-center z-50 bg-black bg-opacity-50">
-            <div className="bg-white p-6 rounded-lg shadow-lg w-[950px] relative"> {/* Larger width */}
+            <div className="bg-white p-6 rounded-lg shadow-lg w-[950px] relative">
                 <button
                     onClick={onClose}
                     className="absolute top-0 right-0 mt-[-12px] mr-[-12px] w-8 h-8 flex items-center justify-center border border-gray-300 rounded-full bg-white z-50"
@@ -163,215 +201,149 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({ onClose, onAddService
 
                 {step === 0 ? (
                     <div>
-                        <div className={`text-center mb-3.5`}>
-                            <TextView text="Choose a Service Type" className={`text-2xl`} />
+                        <div className="text-center mb-3.5">
+                            <TextView text="Choose a Service Type" className="text-2xl" />
                         </div>
                         <div className="flex justify-between mb-4">
-                            <div
-                                className={`w-1/2 border border-4 border-green-400 rounded-md hover:border-green-200 p-5 m-4`}>
+                            <div className="w-1/2 border border-4 border-green-400 rounded-md hover:border-green-200 p-5 m-4">
                                 <Button onClick={() => handleNextStep('single')} size="large">
-                                    <FaFolder/><span className={`ml-4`}>Single Service</span>
+                                    <FaFolder /><span className="ml-4">Single Service</span>
                                 </Button>
-                                <div className={`m-4`}>
-                                    <TextView text="Service which can be booked individually" className={`text-md`}/>
+                                <div className="m-4">
+                                    <TextView text="Service which can be booked individually" className="text-md" />
                                 </div>
                             </div>
-                            <div
-                                className={`w-1/2 border border-4 rounded-md p-5 m-4 ${
-                                    Object.keys(valueService).length === 0 ? 'border-gray-400 opacity-50 cursor-not-allowed' : 'border-green-400 hover:border-green-200'
-                                }`}
-                            >
+                            <div className={`w-1/2 border border-4 rounded-md p-5 m-4 ${
+                                Object.keys(valueService).length === 0 ? 'border-gray-400 opacity-50 cursor-not-allowed' : 'border-green-400 hover:border-green-200'
+                            }`}>
                                 <Button
                                     onClick={() => handleNextStep('package')}
                                     size="large"
-                                    disabled={Object.keys(valueService).length === 0} // Disable the button when value is empty
+                                    disabled={Object.keys(valueService).length === 0}
                                 >
-                                    <FaBox/>
+                                    <FaBox />
                                     <span className="ml-4">Package</span>
                                 </Button>
                                 <div className="m-4">
-                                    <TextView text="Multiple services grouped in one appointment" className="text-md"/>
+                                    <TextView text="Multiple services grouped in one appointment" className="text-md" />
                                 </div>
                             </div>
-
                         </div>
                     </div>
                 ) : step === 1 ? (
-                    <div key={serviceType}>
+                    <div className="mb-2">
                         <h2 className="text-xl font-semibold mb-4">{serviceToEdit ? 'Edit Service' : 'Add New Service'}</h2>
                         <div className="flex flex-col space-y-4">
                             <div className="flex space-x-4">
                                 <div className="flex-1">
                                     <InputText
-                                        type="text"
-                                        placeholder="Service Name"
+                                        name="serviceName"
                                         value={serviceName}
                                         onChange={(e) => setServiceName(e.target.value)}
                                     />
-                                    {errors.serviceName && <span className="text-red-500 text-sm">{errors.serviceName}</span>}
                                 </div>
                                 <div className="flex-1">
-                                    <div className="flex items-center space-x-2">
-                                        <label htmlFor="serviceCategory" className="text-sm font-medium mb-1">Service Category</label>
-                                        <DropdownButton
-                                            id="serviceCategory"
-                                            options={option}
-                                            onSelect={(selectedOption) => setServiceCategory(Number(selectedOption))}
-                                            placeholder="Select a category"
-                                        />
-                                    </div>
-                                    {errors.serviceCategory && <span className="text-red-500 text-sm">{errors.serviceCategory}</span>}
-                                </div>
-                            </div>
-                            <TextArea
-                                placeholder="Service Description"
-                                rows={4}
-                                value={serviceDescription}
-                                onChange={(e) => setServiceDescription(e.target.value)}
-                            />
-                            {errors.serviceDescription && <span className="text-red-500 text-sm">{errors.serviceDescription}</span>}
-                            <TextArea
-                                placeholder="Aftercare Description"
-                                rows={4}
-                                value={aftercareDescription}
-                                onChange={(e) => setAftercareDescription(e.target.value)}
-                            />
-                            <div className="flex flex-col">
-                                <div className={`w-full`}>
-                                    <TextView text={`Service Cost`} className={`font-medium`} />
-                                </div>
-                                <div className={`flex space-x-4`}>
-                                    <div className="flex-1">
-                                        <InputText
-                                            type="number"
-                                            placeholder="Service Cost"
-                                            value={serviceCost}
-                                            onChange={(e) => setServiceCost(Number(e.target.value))}
-                                        />
-                                        {errors.serviceCost && <span className="text-red-500 text-sm">{errors.serviceCost}</span>}
-                                    </div>
-                                    <div className="flex items-center space-x-4">
-                                        <TextView text={`PHP`} />
-                                    </div>
+                                    <Select
+                                        id="serviceCategory"
+                                        value={formData.serviceCategory}
+                                        onChange={(e) => handleInputChange("serviceCategory")(e)}
+                                    >
+                                        <option value="0">Select a Category</option>
+                                        {options.map((option) => (
+                                            <option key={option.value} value={option.value}>
+                                                {option.label}
+                                            </option>
+                                        ))}
+                                    </Select>
+                                    {errors.serviceCategory && <span className="error">{errors.serviceCategory}</span>}
                                 </div>
                             </div>
 
-                            <div className="flex justify-center">
-                                <div className="m-2">
-                                    <Button onClick={handleAddService} size="medium">
-                                        {serviceToEdit ? 'Save Changes' : 'Add Service'}
-                                    </Button>
-                                </div>
-                                <div className="m-2">
-                                    <Button onClick={handleGoBack} size="medium" variant="transparent">
-                                        Go Back
-                                    </Button>
-                                </div>
+                            <TextArea
+                                value={formData.serviceDescription}
+                                onChange={handleServiceChange}
+                            />
+
+                            <InputText
+                                name="serviceCost"
+                                type="number"
+                                value={formData.serviceCost}
+                                onChange={handleInputChange("serviceCost")}
+                            />
+
+                            {/* Divider and Inventory Setting Label */}
+                            <hr className="my-4"/>
+                            <div className={`flex`}>
+                                <h3 className="text-lg font-semibold mb-2">Inventory Setting</h3>
+                                <span className={`mt-1.5`}><FaPlus
+                                    onClick={addInventoryFields}
+                                    className="ml-2 cursor-pointer text-violet-400 hover:text-violet-700"
+                                    size={20} // Adjust size as needed
+                                /></span>
                             </div>
+
+
+                            <div className="overflow-y-auto max-h-48"> {/* Set max height here */}
+                                {/* Initial Pair of Text Boxes */}
+                                <div className="flex space-x-4">
+                                    <InputText name="inventory1" placeholder="Inventory"/>
+                                    <InputText name="inventory2" placeholder="Quantity Usage" />
+                                </div>
+
+                                {/* Render additional input fields if added */}
+                                {additionalInventoryFields.map((_, index) => (
+                                    <div key={index} className="flex space-x-4 mt-2">
+                                        <InputText
+                                            name={`additionalInventory${index * 2 + 1}`}
+                                            placeholder={`Inventory ${index * 2 + 3}`}
+                                        />
+                                        <InputText
+                                            name={`additionalInventory${index * 2 + 2}`}
+                                            placeholder={`Quantity Usage ${index * 2 + 4}`}
+                                        />
+                                    </div>
+                                ))}
+                            </div>
+
+
+                            <Button className="mb-2 mt-4" onClick={handleAddService} size="large">
+                                {serviceToEdit ? 'Update Service' : 'Add Service'}
+                            </Button>
                         </div>
                     </div>
+
                 ) : (
-                    <div key={serviceType}>
-                        <h2 className="text-xl font-semibold mb-4">
-                            {serviceToEdit ? 'Edit Package' : 'Add New Package'}
-                        </h2>
+                    <div className={`mb-2`}>
+                        <h2 className="text-xl font-semibold mb-4">{serviceToEdit ? 'Edit Package' : 'Add New Package'}</h2>
                         <div className="flex flex-col space-y-4">
-                            <div className="flex space-x-4">
-                                <div className="flex-1">
-                                    <InputText
-                                        type="text"
-                                        placeholder="Package Name"
-                                        value={packageName}
-                                        onChange={(e) => setPackageName(e.target.value)}
-                                    />
-                                    {errors.packageName &&
-                                        <span className="text-red-500 text-sm">{errors.packageName}</span>}
-                                </div>
+                            <InputText
+                                name="packageName"
+                                value={packageName}
+                                onChange={(e) => setPackageName(e.target.value)}
 
-                            </div>
-                            <TextArea
-                                placeholder="Package Description"
-                                rows={4}
-                                value={packageDescription}
-                                onChange={(e) => setPackageDescription(e.target.value)}
                             />
-                            {errors.packageDescription &&
-                                <span className="text-red-500 text-sm">{errors.packageDescription}</span>}
+                            <TextArea
+                                value={formData.packageDescription}
+                                onChange={handlePackageChange}
+                            />
+                            <MultiSelectDropdown servicesByCategory={valueService}
+                                                 onSelectionChange={handleSelectionChange}/>
+                            <InputText
+                                name="packageCost"
+                                type="number"
+                                value={formData.packageCost}
+                                onChange={handleInputChange("packageCost")}
 
-                            <div className="flex flex-col">
-                                <div>
-                                    <MultiSelectDropdown servicesByCategory={valueService}
-                                                         onSelectionChange={handleSelectionChange}/>
-                                </div>
-                            </div>
-
-                            <div className="flex flex-col">
-                                <div className={`w-full`}>
-                                    <TextView text={`Pricing`} className={`font-bold`}/>
-                                </div>
-                                <div className={`flex flex-col space-x-4 mt-2`}>
-                                    <div className="flex flex-row  space-x-2">
-                                        <div className="flex flex-col ">
-                                            <div className={`mb-2`}>
-                                                <TextView text={`Pricing Type`} className={`text-left font-medium`}/>
-                                            </div>
-                                            <div>
-                                                <DropdownButton
-                                                    id="serviceCategory"
-                                                    options={pricingOptions}
-                                                    defaultSelected={'Service pricing'}
-                                                    onSelect={(selectedOption) => setPricingType(selectedOption.toString())}
-                                                    placeholder="Select Pricing Type"
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="flex flex-col ">
-                                            <div className={`mb-2`}>
-                                                 <TextView text={`Duration`} className={`text-left font-medium`}/>
-                                                <span className={`ml-2`}>
-                                                    <TextView text={`(Please add month, day, hrs or minute as suffix to the duration)`} className={`text-left text-xs`}/>
-                                                </span>
-                                            </div>
-                                            <div className={`w-48.5p`}>
-                                            <InputText
-                                                    type="text"
-                                                    placeholder="10 days"
-                                                    value={packageDuration}
-                                                    onChange={(e) => setPackageDuration(e.target.value)}
-                                                />
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div className={`flex mt-2`}>
-
-                                        <div className="flex-1">
-                                            <InputText
-                                                type="text"
-                                                placeholder="P 0.00"
-                                                value={packageCost}
-                                                onChange={(e) => setPackageCost(e.target.value)}
-                                            />
-                                        </div>
-                                    </div>
-
-                                </div>
-                            </div>
-
-                            <div className="flex justify-center">
-                                <div className="m-2">
-                                    <Button onClick={handleAddPackage} size="medium">
-                                        {serviceToEdit ? 'Save Changes' : 'Add Package'}
-                                    </Button>
-                                </div>
-                                <div className="m-2">
-                                    <Button onClick={handleGoBack} size="medium" variant="transparent">
-                                        Go Back
-                                    </Button>
-                                </div>
-                            </div>
+                            />
+                            <Button onClick={handleAddPackage} size="large">
+                                {serviceToEdit ? 'Update Package' : 'Add Package'}
+                            </Button>
                         </div>
                     </div>
                 )}
+                <Button onClick={handleGoBack} size="large">
+                    Go Back
+                </Button>
             </div>
         </div>
     );

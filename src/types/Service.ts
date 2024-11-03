@@ -6,14 +6,16 @@ export interface Service {
     description: string;
     aftercareDescription: string;
     cost: number;
+    price?: number;
+    duration?: string;
     created_at: string;
-    category: number;
+    category: number | string;
 }
 
 export interface SelectedService {
     id: number;
     serviceName: string;
-    category: number;
+    category: string| number;
     price: number;
 }
 export interface ServicesContextType {

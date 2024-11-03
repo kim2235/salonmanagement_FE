@@ -5,7 +5,7 @@ import InputText from '../InputTextComponent/InputText';
 import TextArea from '../TextAreaComponent/TextArea';
 import Select from "../SelectComponent/Select";
 import {Category} from "../AddCategoryModalComponent/AddCategoryModal";
-import {Product} from "../AddProductModalComponent/AddProductModal";
+import {Product} from "../../types/Product";
 
 
 interface EditProductModalProps {

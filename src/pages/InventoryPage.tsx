@@ -1,6 +1,8 @@
 import React, {useEffect, useState} from 'react';
-
-import {FaBars, FaCalendar, FaEllipsisV, FaPlus, FaWrench} from "react-icons/fa";
+import { useSelector,useDispatch } from 'react-redux';
+import {RootState, AppDispatch} from "../redux/store";
+import {addOrUpdateProduct} from "../redux/slices/productSlice";
+import {FaBars, FaEllipsisV, FaPlus, FaWrench} from "react-icons/fa";
 import TextView from "../components/TextViewComponent/TextView";
 import ClientSidebar from "../components/Sidebars/ClientSidebarComponent/ClientSidebar";
 import styles from "./styles/ClientStyle.module.css";
@@ -8,27 +10,27 @@ import Button from "../components/ButtonComponent/Button";
 import InputText from "../components/InputTextComponent/InputText";
 import Avatar from "../components/AvatarComponent/Avatar";
 import Popover from "../components/PopoverModalComponent/Popover";
-import AddProductModal, {Product} from "../components/AddProductModalComponent/AddProductModal";
+import AddProductModal from "../components/AddProductModalComponent/AddProductModal";
 import AddCategoryModal, {Category} from "../components/AddCategoryModalComponent/AddCategoryModal";
 import ProductCategoryListingModal from "../components/ProductCategoryListingModalComponent/ProductCategoryListingModal";
 import EditProductModal from "../components/EditProductModalComponent/EditProductModal";
 import {sidebarItems} from "./menuitems/sidebarItems";
 import {useNavigate} from "react-router-dom";
+import {Product} from "../types/Product";
 
 const InventoryPage: React.FC = () => {
     const navigate = useNavigate();
-    const [reservations, setReservations] = useState<any[]>([]);
-    const [activeItemId, setActiveItemId] = useState<string | null>('clientDetail');
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
     const [isCategoryModalOpen, setIsCategoryModalOpen] = useState<boolean>(false);
     const [isManageCategoryModalOpen, setIsManageCategoryModalOpen] = useState<boolean>(false);
     const [showEditModal, setShowEditModal] = useState<boolean>(false);
-
+    const products = useSelector((state: RootState) => state.products.valueProduct || []);
+    const dispatch = useDispatch<AppDispatch>();
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [categoryData, setCategoryData] = useState<Category[]>( []);
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
     const [teamSearch, setTeamSearch] = useState<any>(null);
-    const [products, setProducts] = useState<Product[]>([]);
+
     const [activeItem, setActiveItem] = useState<string | null>('product');
 
     const handleItemClick = (id: string, type: 'link' | 'div') => {
@@ -36,15 +38,6 @@ const InventoryPage: React.FC = () => {
         if (type === 'link') {
             navigate(id);
         }
-    };
-    useEffect(() => {
-        console.log(products)
-    }, [products]);
-
-
-
-    const handleAddProduct = (newProduct: Product) => {
-        setProducts((prevProducts) => [...prevProducts, newProduct]);
     };
 
     const handleSaveCategory = (updatedCategory: Category) => {
@@ -58,11 +51,7 @@ const InventoryPage: React.FC = () => {
         setCategoryData([...categoryData, category]);
     };
     const handleProductUpdate = (updatedProduct: Product) => {
-        setProducts((prevProducts) =>
-            prevProducts.map((product) =>
-                product.id === updatedProduct.id ? updatedProduct : product
-            )
-        );
+        dispatch(addOrUpdateProduct(updatedProduct));
     };
     const openEditModal = (product: Product) => {
         setSelectedProduct(product);
@@ -73,7 +62,6 @@ const InventoryPage: React.FC = () => {
             {isModalOpen && (
                 <AddProductModal
                     onClose={() => setIsModalOpen(false)}
-                    onAddProduct={handleAddProduct}
                     categories={categoryData}
                 />
             )}
@@ -139,7 +127,7 @@ const InventoryPage: React.FC = () => {
                 </div>
                 <div className="mt-2p">
                     <div className="mt-2p flex items-center justify-start border-b border-b-gray-300">
-                        <div className="p-2 w-1/4 text-center ">
+                        <div className="p-2 w-[515px] text-center ">
                             <TextView text="Product Name"/>
                         </div>
                         <div className="p-2  w-1/4 text-center">
@@ -158,57 +146,60 @@ const InventoryPage: React.FC = () => {
                             <TextView text="Remaining Quantity"/>
                         </div>
                         <div className="p-2 w-1/4 text-center">
-                            <TextView text="Actions"/>
+
                         </div>
                     </div>
                     <div id="clientListContent">
-                        <div className={`mt-2p flex items-center justify-start border-b border-b-gray-300`}>
-                            {products.length > 0 ? (
-                                products.map((product, index) => (
+                        <div className={`mt-2p flex flex-col items-center justify-start border-b border-b-gray-300`}>
+                            {Object.keys(products).length > 0 ? (
+                                Object.values(products).flat().map((product, index) => (
                                     <div key={product.id || index} className={`flex w-full m-2p justify-start`}>
-                                        <div className="p-2 w-1/4 flex justify-start">
+                                        <div className="p-2 w-[515px] flex justify-start">
                                             {product.thumbnail ? (
                                                 <img
-                                                    src={`/temp/productImg/bottleSample.jpg`}
+                                                    src={product.thumbnail} // Use the actual thumbnail from the product
                                                     alt={product.name}
                                                     className="w-[75px] h-[75px] rounded-full object-cover"
                                                 />
                                             ) : (
-                                                <Avatar name={product.name} size="75px" />
+                                                <Avatar name={product.name} size="75px"/>
                                             )}
                                             <div className="ml-10p mt-2p">
-                                                <TextView className="text-center text-lg font-bold" text={product.name} />
+                                                <TextView className="text-center text-lg font-bold"
+                                                          text={product.name}/>
                                             </div>
                                         </div>
                                         <div className="p-2 w-1/4 text-center">
-                                            <TextView text={ categoryData.find((cat) => cat.id === Number(product.category))?.name || 'N/A'} />
+                                            <TextView text={product.category || 'N/A'}/>
                                         </div>
                                         <div className="p-2 w-1/4 text-center">
-                                            <TextView text={product.supplier || 'N/A'} />
+                                            <TextView text={product.supplier || 'N/A'}/>
                                         </div>
                                         <div className="p-2 w-1/4 text-center">
-                                            <TextView text={product.stockQuantity.toString()} />
+                                            <TextView text={product.stockQuantity.toString()}/>
                                         </div>
                                         <div className="p-2 w-1/4 text-center">
-                                            <TextView text={product.stockQuantity.toString()} />
+                                            <TextView text={product.stockQuantity.toString()}/>
                                         </div>
                                         <div className="p-2 w-1/4 text-center">
-                                            <TextView text={product.stockQuantity.toString()} />
+                                            <TextView text={product.stockQuantity.toString()}/>
                                         </div>
                                         <div className="p-2 w-1/4 text-center">
                                             <Popover
                                                 position={`left`}
-                                                trigger={<FaEllipsisV />}
+                                                trigger={<FaEllipsisV/>}
                                                 content={
                                                     <div>
-                                                        <div onClick={() => openEditModal(product) } style={{ padding: '8px', cursor: 'pointer' }}>
+                                                        <div onClick={() => openEditModal(product)}
+                                                             style={{padding: '8px', cursor: 'pointer'}}>
                                                             Edit
                                                         </div>
-
-                                                        <div onClick={() => console.log('Delete product')} style={{ padding: '8px', cursor: 'pointer' }}>
+                                                        <div onClick={() => console.log('Delete product')}
+                                                             style={{padding: '8px', cursor: 'pointer'}}>
                                                             Delete
                                                         </div>
-                                                        <div onClick={() => console.log('Delete product')} style={{ padding: '8px', cursor: 'pointer' }}>
+                                                        <div onClick={() => console.log('Historical Usage')}
+                                                             style={{padding: '8px', cursor: 'pointer'}}>
                                                             Historical Usage
                                                         </div>
                                                     </div>
@@ -219,7 +210,7 @@ const InventoryPage: React.FC = () => {
                                 ))
                             ) : (
                                 <div className="w-full text-center mt-10p">
-                                    <TextView text="No products available." />
+                                <TextView text="No products available." />
                                 </div>
                             )}
                         </div>
