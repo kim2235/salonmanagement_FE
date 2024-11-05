@@ -16,3 +16,5 @@ export interface Product {
     measurementUnit: string;
     measurementAmount: number;
 }
+
+

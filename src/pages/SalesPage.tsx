@@ -15,7 +15,7 @@ import sales from "../testData/sales.json";
 import categories from "../testData/categories.json";
 import services from "../testData/services.json";
 import clientList from "../testData/clientList.json";
-import {Category} from "../components/AddCategoryModalComponent/AddCategoryModal";
+import {Category} from "../types/Category";
 import NotificationModal from "../components/NotificationModalComponent/NotificationModal"
 import {Service} from "../types/Service";
 import {Sales, SalesItems} from "../types/Sales";

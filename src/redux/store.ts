@@ -1,6 +1,7 @@
 import { configureStore, combineReducers } from '@reduxjs/toolkit';
 import storage from 'redux-persist/lib/storage';
-import categoriesReducer from './slices/categoriesSlice';
+import serviceCategoryReducer from './slices/serviceCategorySlice';
+import productCategoryReducer from "./slices/productCategorySlice";
 import serviceReducer from './slices/serviceSlice';
 import packageReducer from './slices/packageSlice';
 import productReducer from './slices/productSlice';
@@ -10,11 +11,12 @@ import {persistReducer, persistStore} from "redux-persist";
 const persistConfig = {
     key: 'root', // Key for the root storage
     storage,     // Use `localStorage` for persistence
-    whitelist: ['products','services'],
+    whitelist: ['products','productCategories','services','serviceCategories'],
 };
 
 const rootReducer = combineReducers({
-    categories: categoriesReducer,
+    serviceCategories: serviceCategoryReducer,
+    productCategories: productCategoryReducer,
     services: serviceReducer,
     packages: packageReducer,
     products: productReducer

@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 import {FaBars, FaCalendar, FaEllipsisV, FaPlus} from "react-icons/fa";
 import TextView from "../components/TextViewComponent/TextView";
 import ClientSidebar from "../components/Sidebars/ClientSidebarComponent/ClientSidebar";
-import eventsPlot from "../testData/eventsPlot.json";
 import styles from "./styles/ClientStyle.module.css";
 import Button from "../components/ButtonComponent/Button";
 import InputText from "../components/InputTextComponent/InputText";

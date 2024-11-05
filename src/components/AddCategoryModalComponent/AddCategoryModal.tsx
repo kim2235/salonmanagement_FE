@@ -2,25 +2,20 @@ import React, { useState } from 'react';
 import { FaPlus } from 'react-icons/fa';
 import Button from '../ButtonComponent/Button';
 import { generateMicrotime } from "../../utilities/microTimeStamp";
+import {Category} from "../../types/Category";
 
-export interface Category {
-    id: string | number;
-    name: string;
-    description: string;
-    created_at: string;
-    appointmentColor?: string;
-    categoryType?: string;
-}
 
 interface AddCategoryModalProps {
     onClose: () => void;
     onAddCategory: (category: Category) => void;
+    categoryTagging: string;
     hasColorPicker?: boolean; // Make color picker optional
 }
 
 const AddCategoryModal: React.FC<AddCategoryModalProps> = ({
                                                                onClose,
                                                                onAddCategory,
+                                                               categoryTagging,
                                                                hasColorPicker = true // Default value is true
                                                            }) => {
     const [categoryName, setCategoryName] = useState<string>('');

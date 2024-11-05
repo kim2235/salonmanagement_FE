@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {FaEdit, FaPlus} from 'react-icons/fa';
 import Button from '../ButtonComponent/Button';
-import { Category } from '../AddCategoryModalComponent/AddCategoryModal'; // Reuse the same Category interface
+import {Category} from "../../types/Category";
 
 interface ProductCategoryListingModalProps {
     categories: Category[];  // List of categories to display

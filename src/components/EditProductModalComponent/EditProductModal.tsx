@@ -4,7 +4,7 @@ import Button from '../ButtonComponent/Button';
 import InputText from '../InputTextComponent/InputText';
 import TextArea from '../TextAreaComponent/TextArea';
 import Select from "../SelectComponent/Select";
-import {Category} from "../AddCategoryModalComponent/AddCategoryModal";
+import {Category} from "../../types/Category";
 import {Product} from "../../types/Product";
 
 

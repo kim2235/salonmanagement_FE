@@ -2,6 +2,7 @@ import React, {useEffect, useState} from 'react';
 import { useSelector,useDispatch } from 'react-redux';
 import {RootState, AppDispatch} from "../redux/store";
 import {addOrUpdateProduct} from "../redux/slices/productSlice";
+import {addCategory, updateCategory} from "../redux/slices/productCategorySlice";
 import {FaBars, FaEllipsisV, FaPlus, FaWrench} from "react-icons/fa";
 import TextView from "../components/TextViewComponent/TextView";
 import ClientSidebar from "../components/Sidebars/ClientSidebarComponent/ClientSidebar";
@@ -11,12 +12,13 @@ import InputText from "../components/InputTextComponent/InputText";
 import Avatar from "../components/AvatarComponent/Avatar";
 import Popover from "../components/PopoverModalComponent/Popover";
 import AddProductModal from "../components/AddProductModalComponent/AddProductModal";
-import AddCategoryModal, {Category} from "../components/AddCategoryModalComponent/AddCategoryModal";
+import AddCategoryModal from "../components/AddCategoryModalComponent/AddCategoryModal";
 import ProductCategoryListingModal from "../components/ProductCategoryListingModalComponent/ProductCategoryListingModal";
 import EditProductModal from "../components/EditProductModalComponent/EditProductModal";
 import {sidebarItems} from "./menuitems/sidebarItems";
 import {useNavigate} from "react-router-dom";
 import {Product} from "../types/Product";
+import {Category} from "../types/Category";
 
 const InventoryPage: React.FC = () => {
     const navigate = useNavigate();
@@ -25,9 +27,10 @@ const InventoryPage: React.FC = () => {
     const [isManageCategoryModalOpen, setIsManageCategoryModalOpen] = useState<boolean>(false);
     const [showEditModal, setShowEditModal] = useState<boolean>(false);
     const products = useSelector((state: RootState) => state.products.valueProduct || []);
+    const categoryData = useSelector((state: RootState) => state.productCategories.categories || []);
     const dispatch = useDispatch<AppDispatch>();
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-    const [categoryData, setCategoryData] = useState<Category[]>( []);
+    // const [categoryData, setCategoryData] = useState<Category[]>( []);
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
     const [teamSearch, setTeamSearch] = useState<any>(null);
 
@@ -41,14 +44,10 @@ const InventoryPage: React.FC = () => {
     };
 
     const handleSaveCategory = (updatedCategory: Category) => {
-        setCategoryData((prevCategories) =>
-            prevCategories.map((cat) =>
-                cat.id === updatedCategory.id ? updatedCategory : cat
-            )
-        );
+        dispatch(updateCategory(updatedCategory))
     };
     const handleAddCategory = (category: Category) => {
-        setCategoryData([...categoryData, category]);
+        dispatch(addCategory(category))
     };
     const handleProductUpdate = (updatedProduct: Product) => {
         dispatch(addOrUpdateProduct(updatedProduct));
@@ -66,7 +65,7 @@ const InventoryPage: React.FC = () => {
                 />
             )}
             {isCategoryModalOpen && <AddCategoryModal hasColorPicker={false} onClose={() => setIsCategoryModalOpen(false)}
-                                                      onAddCategory={handleAddCategory}/>}
+                                                      onAddCategory={handleAddCategory} categoryTagging={'product'} />}
             {isManageCategoryModalOpen && (
                 <ProductCategoryListingModal
                     categories={categoryData}
@@ -170,7 +169,9 @@ const InventoryPage: React.FC = () => {
                                             </div>
                                         </div>
                                         <div className="p-2 w-1/4 text-center">
-                                            <TextView text={product.category || 'N/A'}/>
+                                            <TextView text={
+                                                categoryData.find(category => category.id === Number(product.category))?.name || 'N/A'
+                                            }/>
                                         </div>
                                         <div className="p-2 w-1/4 text-center">
                                             <TextView text={product.supplier || 'N/A'}/>

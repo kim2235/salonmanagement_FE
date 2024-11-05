@@ -10,6 +10,7 @@ export interface Service {
     duration?: string;
     created_at: string;
     category: number | string;
+    serviceProductUsed?: Array<{ id: number; name: string; amt: number }>;
 }
 
 export interface SelectedService {

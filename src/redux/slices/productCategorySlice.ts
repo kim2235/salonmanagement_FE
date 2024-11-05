@@ -1,5 +1,7 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { Category } from '../../components/AddCategoryModalComponent/AddCategoryModal';
+
+import { RootState } from '../store';
+import { Category} from "../../types/Category";
 
 interface CategoriesState {
     categories: Category[];
@@ -9,7 +11,7 @@ const initialState: CategoriesState = {
     categories: [],
 };
 
-const categoriesSlice = createSlice({
+const productCategorySlice = createSlice({
     name: 'categories',
     initialState,
     reducers: {
@@ -27,6 +29,7 @@ const categoriesSlice = createSlice({
         },
     },
 });
+export const selectAllCategories = (state: RootState) => state.productCategories.categories;
 
-export const { addCategory, updateCategory,deleteCategory } = categoriesSlice.actions;
-export default categoriesSlice.reducer;
+export const { addCategory, updateCategory,deleteCategory } = productCategorySlice.actions;
+export default productCategorySlice.reducer;

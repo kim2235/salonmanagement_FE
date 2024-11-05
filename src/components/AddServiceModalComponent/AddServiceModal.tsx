@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from "../../redux/store";
 import { FaBox, FaFolder, FaPlus } from 'react-icons/fa';
 import Button from '../ButtonComponent/Button';
 import InputText from '../InputTextComponent/InputText';
 import TextView from "../TextViewComponent/TextView";
-import { v4 as uuidv4 } from 'uuid';
 import DropdownButton, { Option } from "../DropdownButtonComponent/DropdownButton";
 import TextArea from "../TextAreaComponent/TextArea";
 import MultiSelectDropdown from "../MultiSelectDropdownComponent/MultiSelectDropdown";
@@ -15,8 +14,11 @@ import pricingOptions from "../../data/pricingOptions.json";
 import { generateMicrotime } from "../../utilities/microTimeStamp";
 import { addOrUpdateService } from "../../redux/slices/serviceSlice";
 import { addOrUpdatePackage } from "../../redux/slices/packageSlice";
-import {Category} from "../AddCategoryModalComponent/AddCategoryModal";
+import {Category} from "../../types/Category";
 import Select from "../SelectComponent/Select";
+
+import {selectFlatProducts} from "../../redux/selectors/productSelectors";
+import {Product} from "../../types/Product";
 
 interface AddServiceModalProps {
     onClose: () => void;
@@ -27,12 +29,20 @@ interface AddServiceModalProps {
 
 interface ServiceState {
     serviceCategory: number | string;
+    serviceInventory?: number | string;
+    productQuantity?: number ;
     serviceDescription: string;
     packageDescription: string;
     aftercareDescription: string;
     serviceCost: number;
     packageCost: number;
     packageDuration: string;
+    inventoryFields: Array<{ id: number; name: string; amt: number }>;
+}
+
+interface InventoryField {
+    inputValue: string;
+    suggestions: string[];
 }
 
 const AddServiceModal: React.FC<AddServiceModalProps> = ({
@@ -43,12 +53,11 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
                                                          }) => {
     const dispatch = useDispatch<AppDispatch>();
     const valueService = useSelector((state: RootState) => state.services.valueService);
-    const categories = useSelector((state: RootState) => state.categories.categories); // Access categories from the Redux store
+    const categories = useSelector((state: RootState) => state.serviceCategories.categories); // Access categories from the Redux store
 
     const [step, setStep] = useState<number>(forceStep);
     const [serviceName, setServiceName] = useState<string>(serviceToEdit ? serviceToEdit.name : '');
     const [packageName, setPackageName] = useState<string>(serviceToEdit ? serviceToEdit.name : '');
-    const [additionalInventoryFields, setAdditionalInventoryFields] = useState<unknown[]>([]); // Use `unknown` for type safety
 
     const [formData, setFormData] = useState<ServiceState>({
         serviceCategory: serviceToEdit?.category || 0,
@@ -58,19 +67,74 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
         serviceCost: serviceToEdit?.cost || 0,
         packageCost: serviceToEdit?.price || 0,
         packageDuration: serviceToEdit?.duration || '',
+        inventoryFields: [{ id: 0, name: '', amt: 1 }],
     });
-
-    const handleInputChange = (name: string) => (event: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>) => {
-        const { value } = event.target;
-        setFormData((prevData) => ({
-            ...prevData,
-            [name]: value, // Update the state with the new value
-        }));
-    };
 
     const [errors, setErrors] = useState<{ [key: string]: string }>({});
     const [serviceType, setServiceType] = useState<'single' | 'package' | null>(null);
     const [usedService, setUsedService] = useState<SelectedService[]>([]);
+
+    const products = useSelector(selectFlatProducts);
+    const findProductById = (id: string | number): Product | undefined => {
+        return products.find((product) => product.id === id);
+    };
+
+    const productOptions = products.map(product => ({
+        value: product.id, // Assuming each product has an 'id'
+        label: product.name // Assuming each product has a 'name'
+    }));
+
+    const addInventoryFields = () => {
+        setFormData(prevData => ({
+            ...prevData,
+            inventoryFields: [
+                ...prevData.inventoryFields,
+                { id: 0, name: '', amt: 1 } // Default values for a new inventory field
+            ]
+        }));
+    };
+
+
+    const handleInputChange = (name: keyof ServiceState, index?: number) =>
+        (event: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>) => {
+            const { value } = event.target;
+
+            setFormData((prevData) => {
+                const updatedData = { ...prevData };
+
+                // Check if we are updating inventoryFields specifically
+                if (name === 'serviceInventory' || name === 'productQuantity') {
+                    if (index !== undefined && updatedData.inventoryFields[index]) {
+                        const selectedProduct = products.find(product => product.id === Number(value));
+                        const productName = selectedProduct ? selectedProduct.name : '';
+                        const quantity = name === 'productQuantity' ? Number(value) : Number(updatedData.inventoryFields[index].amt) || 1;
+
+                        // Update the inventoryFields array at the given index
+                        updatedData.inventoryFields = [...updatedData.inventoryFields];
+                        updatedData.inventoryFields[index] = {
+                            id: Number(updatedData.inventoryFields[index].id || value),
+                            name: productName,
+                            amt: quantity,
+                        };
+                    }
+                } else {
+                    // For other fields, use type-safe assignments
+                    if (name === 'serviceCategory' && typeof value === 'string') {
+                        updatedData.serviceCategory = value;
+                    } else if (name === 'serviceCost' && !isNaN(Number(value))) {
+                        updatedData.serviceCost = Number(value);
+                    } else if (name === 'serviceDescription' && typeof value === 'string') {
+                        updatedData.serviceDescription = value;
+                    }
+                    // Add similar conditions for other fields as needed.
+                }
+
+                return updatedData;
+            });
+        };
+
+
+
 
     useEffect(() => {
         if (usedService.length > 0) {
@@ -101,25 +165,24 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
         return newErrors;
     };
     const handleServiceChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
-        const { value } = event.target; // Get the value of the textarea
+        const { value } = event.target;
         setFormData({
             ...formData,
-            serviceDescription: value, // Update the state with the new value
+            serviceDescription: value,
         });
     };
     const handlePackageChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
-        const { value } = event.target; // Get the value of the textarea
-        console.log(value)
+        const { value } = event.target;
         setFormData({
             ...formData,
-            packageDescription: value, // Update the state with the new value
+            packageDescription: value,
         });
 
     };
 
     const handleAddService = () => {
         const validationErrors = validateForm();
-        console.log(formData)
+
         if (Object.keys(validationErrors).length > 0) {
             setErrors(validationErrors);
         } else {
@@ -131,6 +194,7 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
                 aftercareDescription: formData.aftercareDescription,
                 cost: formData.serviceCost,
                 created_at: serviceToEdit ? serviceToEdit.created_at : new Date().toISOString(),
+                serviceProductUsed: formData.inventoryFields
             };
 
             dispatch(addOrUpdateService(newService));
@@ -185,10 +249,6 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
         value: category.id,     // Assuming Category has an 'id' property
     }));
 
-    const addInventoryFields = () => {
-        setAdditionalInventoryFields([...additionalInventoryFields, {}, {}]); // Add two new entries
-    };
-
     return (
         <div className="fixed inset-0 flex justify-center items-center z-50 bg-black bg-opacity-50">
             <div className="bg-white p-6 rounded-lg shadow-lg w-[950px] relative">
@@ -231,18 +291,20 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
                         </div>
                     </div>
                 ) : step === 1 ? (
-                    <div className="mb-2">
-                        <h2 className="text-xl font-semibold mb-4">{serviceToEdit ? 'Edit Service' : 'Add New Service'}</h2>
-                        <div className="flex flex-col space-y-4">
-                            <div className="flex space-x-4">
-                                <div className="flex-1">
+                    <div className={`mb-2`}>
+                        <h2 className={`text-xl font-semibold mb-4`}>
+                            {serviceToEdit ? 'Edit Service' : 'Add New Service'}
+                        </h2>
+                        <div className={`flex flex-col space-y-4`}>
+                            <div className={`flex space-x-4`}>
+                                <div className={`flex-1`}>
                                     <InputText
                                         name="serviceName"
                                         value={serviceName}
                                         onChange={(e) => setServiceName(e.target.value)}
                                     />
                                 </div>
-                                <div className="flex-1">
+                                <div className={`flex-1`}>
                                     <Select
                                         id="serviceCategory"
                                         value={formData.serviceCategory}
@@ -255,7 +317,8 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
                                             </option>
                                         ))}
                                     </Select>
-                                    {errors.serviceCategory && <span className="error">{errors.serviceCategory}</span>}
+                                    {errors.serviceCategory &&
+                                        <span className={`error`}>{errors.serviceCategory}</span>}
                                 </div>
                             </div>
 
@@ -272,45 +335,54 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
                             />
 
                             {/* Divider and Inventory Setting Label */}
-                            <hr className="my-4"/>
+                            <hr className={`my-4`}/>
                             <div className={`flex`}>
-                                <h3 className="text-lg font-semibold mb-2">Inventory Setting</h3>
-                                <span className={`mt-1.5`}><FaPlus
-                                    onClick={addInventoryFields}
-                                    className="ml-2 cursor-pointer text-violet-400 hover:text-violet-700"
-                                    size={20} // Adjust size as needed
-                                /></span>
+                                <h3 className={`text-lg font-semibold mb-2`}>Inventory Setting</h3>
+                                <span className={`mt-1.5`}>
+                                    <FaPlus
+                                        onClick={addInventoryFields}
+                                        className={`ml-2 cursor-pointer text-violet-400 hover:text-violet-700`}
+                                        size={20} // Adjust size as needed
+                                    />
+                                </span>
                             </div>
 
 
-                            <div className="overflow-y-auto max-h-48"> {/* Set max height here */}
-                                {/* Initial Pair of Text Boxes */}
-                                <div className="flex space-x-4">
-                                    <InputText name="inventory1" placeholder="Inventory"/>
-                                    <InputText name="inventory2" placeholder="Quantity Usage" />
-                                </div>
-
-                                {/* Render additional input fields if added */}
-                                {additionalInventoryFields.map((_, index) => (
-                                    <div key={index} className="flex space-x-4 mt-2">
-                                        <InputText
-                                            name={`additionalInventory${index * 2 + 1}`}
-                                            placeholder={`Inventory ${index * 2 + 3}`}
-                                        />
-                                        <InputText
-                                            name={`additionalInventory${index * 2 + 2}`}
-                                            placeholder={`Quantity Usage ${index * 2 + 4}`}
-                                        />
+                            <div className={`overflow-y-auto max-h-48`}>
+                                {formData.inventoryFields.map((field, index) => (
+                                    <div key={index} className={`flex space-x-4 mb-2`}>
+                                        <div className="w-1/2 relative">
+                                            <Select
+                                                id={`serviceInventory-${index}`}
+                                                value={field.id || ''}
+                                                onChange={(e) => handleInputChange("serviceInventory", index)(e)}
+                                            >
+                                                <option value="0">Select a Product</option>
+                                                {productOptions.map((option) => (
+                                                    <option key={option.value} value={option.value}>
+                                                        {option.label}
+                                                    </option>
+                                                ))}
+                                            </Select>
+                                        </div>
+                                        <div className="w-1/2">
+                                            <InputText
+                                                name={`productQuantity-${index}`}
+                                                placeholder="Quantity Usage"
+                                                value={field.amt || ''}
+                                                onChange={(e) => handleInputChange("productQuantity", index)(e)}
+                                            />
+                                        </div>
                                     </div>
                                 ))}
                             </div>
 
-
-                            <Button className="mb-2 mt-4" onClick={handleAddService} size="large">
+                            <Button className={`mb-2 mt-4`} onClick={handleAddService} size="large">
                                 {serviceToEdit ? 'Update Service' : 'Add Service'}
                             </Button>
                         </div>
                     </div>
+
 
                 ) : (
                     <div className={`mb-2`}>

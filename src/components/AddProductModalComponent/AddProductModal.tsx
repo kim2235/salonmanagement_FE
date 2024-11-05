@@ -4,7 +4,7 @@ import { addOrUpdateProduct } from '../../redux/slices/productSlice';
 import { FaPlus } from 'react-icons/fa';
 import Button from '../ButtonComponent/Button';
 import { generateMicrotime } from '../../utilities/microTimeStamp';
-import { Category } from "../AddCategoryModalComponent/AddCategoryModal";
+import { Category} from "../../types/Category";
 import {Product} from "../../types/Product";
 import InputText from '../InputTextComponent/InputText';
 import TextArea from '../TextAreaComponent/TextArea';

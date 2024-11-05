@@ -1,7 +1,7 @@
 import React, {useContext, useEffect, useState} from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import {RootState, AppDispatch} from "../redux/store";
-import { addCategory, updateCategory,deleteCategory } from '../redux/slices/categoriesSlice';
+import { addCategory, updateCategory,deleteCategory } from '../redux/slices/serviceCategorySlice';
 import { addOrUpdateService  } from '../redux/slices/serviceSlice';
 import { addOrUpdatePackage  } from '../redux/slices/packageSlice';
 import TextView from "../components/TextViewComponent/TextView";
@@ -12,7 +12,7 @@ import DropdownButton from "../components/DropdownButtonComponent/DropdownButton
 import { useNavigate } from 'react-router-dom';
 import {FaPlus, FaBars, FaEllipsisV} from 'react-icons/fa';
 import AddCategoryModal from "../components/AddCategoryModalComponent/AddCategoryModal";
-import { Category } from "../components/AddCategoryModalComponent/AddCategoryModal"
+import {Category} from "../types/Category";
 import AddServiceModal from "../components/AddServiceModalComponent/AddServiceModal";
 import { Service} from "../types/Service";
 import Popover from "../components/PopoverModalComponent/Popover";
@@ -31,16 +31,11 @@ type ServiceCountMap = {
 const CatalogPage: React.FC = () => {
     const   navigate = useNavigate();
     const dispatch = useDispatch<AppDispatch>();
-    const contextService = useContext(servicesContext);
-    const contextPackage = useContext(packagesContext);
 
-    if (!contextService || !contextPackage) {
-        throw new Error('AddServiceModal must be used within a ServicesProvider');
-    }
 
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-    const categories = useSelector((state: RootState) => state.categories.categories);
+    const categories = useSelector((state: RootState) => state.serviceCategories.categories);
     const services = useSelector((state: RootState) => state.services.valueService || []);
     const packages = useSelector((state: RootState) => state.packages.valuePackage || []);
 
@@ -342,7 +337,7 @@ const CatalogPage: React.FC = () => {
                 </div>
             </div>
             {isAddCategoryModalOpen && <AddCategoryModal onClose={() => setIsAddCategoryModalOpen(false)}
-                                                         onAddCategory={handleAddCategory}/>}
+                                                         onAddCategory={handleAddCategory} categoryTagging={'service'} />}
             {isAddServiceModalOpen && <AddServiceModal onClose={() => setIsAddServiceModalOpen(false)}
                                                        option={categories.map(category => ({
                                                            label: category.name,
