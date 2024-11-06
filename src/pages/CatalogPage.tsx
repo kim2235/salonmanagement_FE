@@ -2,8 +2,6 @@ import React, {useContext, useEffect, useState} from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import {RootState, AppDispatch} from "../redux/store";
 import { addCategory, updateCategory,deleteCategory } from '../redux/slices/serviceCategorySlice';
-import { addOrUpdateService  } from '../redux/slices/serviceSlice';
-import { addOrUpdatePackage  } from '../redux/slices/packageSlice';
 import TextView from "../components/TextViewComponent/TextView";
 import ClientSidebar from "../components/Sidebars/ClientSidebarComponent/ClientSidebar";
 import styles from './styles/ClientStyle.module.css';
@@ -16,14 +14,11 @@ import {Category} from "../types/Category";
 import AddServiceModal from "../components/AddServiceModalComponent/AddServiceModal";
 import { Service} from "../types/Service";
 import Popover from "../components/PopoverModalComponent/Popover";
-import { servicesContext } from "../context/servicesContext";
-import { packagesContext } from "../context/packagesContext";
 import {Package} from "../types/Package";
 import categories from "../testData/categories.json";
 import services from "../testData/services.json";
 import Button from "../components/ButtonComponent/Button";
 import {sidebarItems} from "./menuitems/sidebarItems";
-const categoryRawData: Category[] = categories;
 
 type ServiceCountMap = {
     [key: string]: number; // or number if category is always a number
@@ -32,17 +27,13 @@ const CatalogPage: React.FC = () => {
     const   navigate = useNavigate();
     const dispatch = useDispatch<AppDispatch>();
 
-
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     const categories = useSelector((state: RootState) => state.serviceCategories.categories);
     const services = useSelector((state: RootState) => state.services.valueService || []);
     const packages = useSelector((state: RootState) => state.packages.valuePackage || []);
-
     const [isAddCategoryModalOpen, setIsAddCategoryModalOpen] = useState(false);
-
     const [isAddServiceModalOpen, setIsAddServiceModalOpen] = useState(false);
-
     const sortOptions = ['Created at (Newest first)', 'Created at (Oldest first)'];
     const [editingService, setEditingService] = useState<Service | Package | null>(null);
     const [currStep, setCurrStep] = useState(0 );

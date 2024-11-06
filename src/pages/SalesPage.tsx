@@ -1,4 +1,6 @@
 import React, {useEffect, useState} from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState, AppDispatch } from "../redux/store";
 import TextView from "../components/TextViewComponent/TextView";
 import Button from "../components/ButtonComponent/Button";
 import ClientSidebar from "../components/Sidebars/ClientSidebarComponent/ClientSidebar";
@@ -9,11 +11,11 @@ import DropdownButton from "../components/DropdownButtonComponent/DropdownButton
 import Avatar from "../components/AvatarComponent/Avatar";
 import { useNavigate } from 'react-router-dom';
 import ReactPaginate from 'react-paginate';
-import {FaPlus, FaBars, FaChevronRight, FaEllipsisV, FaMoneyBill, FaCoins} from 'react-icons/fa';
+import {FaPlus, FaBars, FaChevronRight, FaEllipsisV, FaMoneyBill, FaCoins, FaTrash} from 'react-icons/fa';
 import ClientProfile from "../components/SubClientComponent/ClientProfile";
 import sales from "../testData/sales.json";
-import categories from "../testData/categories.json";
-import services from "../testData/services.json";
+import {addOrUpdateSale} from "../redux/slices/salesSlice";
+import {addOrUpdateSalesItem} from "../redux/slices/salesItemsSlice";
 import clientList from "../testData/clientList.json";
 import {Category} from "../types/Category";
 import NotificationModal from "../components/NotificationModalComponent/NotificationModal"
@@ -21,15 +23,23 @@ import {Service} from "../types/Service";
 import {Sales, SalesItems} from "../types/Sales";
 import Popover from "../components/PopoverModalComponent/Popover";
 import {Client, SelectedClient} from "../types/Client";
+
 import { v4 as uuidv4 } from 'uuid';
 import ClientSalesViewerModal from "../components/ClientSalesViewerModalComponent/ClientSalesViewerModal";
 import {generateMicrotime} from "../utilities/microTimeStamp";
 import {sidebarItems} from "./menuitems/sidebarItems";
+import {addCategory} from "../redux/slices/serviceCategorySlice";
+
 
 const salesData = sales
 
 const SalesPage: React.FC = () => {
     const navigate = useNavigate();
+    const dispatch = useDispatch<AppDispatch>();
+    const valueService = useSelector((state: RootState) => state.services.valueService);
+    const valueSales = useSelector((state: RootState) => state.sales.valueSales);
+    const categories = useSelector((state: RootState) => state.serviceCategories.categories);
+
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [currentPage, setCurrentPage] = useState(0);
     const [selectedClient, setSelectedClient] = useState<SelectedClient[] | null>();
@@ -139,10 +149,11 @@ const SalesPage: React.FC = () => {
             balance: salesItems.balance,
             date: salesItems.date
         };
+        dispatch(addOrUpdateSale(newSale));
+        dispatch(addOrUpdateSalesItem(salesItems.services))
 
-        setSelectedServices(salesItems.services);
         // Update the saveSales state with the new sale
-        setSaveSales((prevSales) => [...(prevSales ?? []), newSale]);
+
         showSuccess();
         setHidden(false);
         setActiveCategory(null); // Reset active category after fade-out transition
@@ -157,7 +168,7 @@ const SalesPage: React.FC = () => {
     }, [saveSales]); // Log every time saveSales changes
     const handleCategoryClick = (id: number) => {
         setFade(true); // Start fade out
-        const selectedServices = (services as { [key: string]: Service[] })[id.toString()] || [];
+        const selectedServices = (valueService as { [key: string]: Service[] })[id.toString()] || [];
         setServicesData(selectedServices);
         setTimeout(() => {
             setHidden(true);
@@ -176,7 +187,11 @@ const SalesPage: React.FC = () => {
         }, 300); // Delay for fade-out effect (matches the CSS transition duration)
     };
     const handleServiceClick = (service: Service) => {
-        setAddedServices((prevServices) => [...prevServices, service]); // Add the clicked service to the cart
+        const newCartItem = {
+            ...service,
+            guid: generateGUID(), // Attach a unique GUID to make each entry distinct
+        };
+        setAddedServices((prevServices) => [...prevServices, newCartItem]); // Add the clicked service to the cart
     };
 
     const handleGoBack = () => {
@@ -218,7 +233,7 @@ const SalesPage: React.FC = () => {
     };
 
 
-    let  displayedSales = saveSales.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    let  displayedSales = Object.values(valueSales).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
                                 .slice(currentPage * clientsPerPage, (currentPage + 1) * clientsPerPage);
 
     const handleOptionSelect = (option:  string | number | boolean) => {
@@ -234,6 +249,17 @@ const SalesPage: React.FC = () => {
         // e.g., axios.put(`/api/sales/${updatedSales.id}`, updatedSales)
         //      .then(response => { /* Handle success */ })
         //      .catch(error => { /* Handle error */ });
+    };
+
+    const handleDeleteService = (id: string) => {
+        setAddedServices((prevServices) => prevServices.filter(service => service.guid !== id));
+    };
+    const generateGUID = () => {
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+            const r = (Math.random() * 16) | 0;
+            const v = c === 'x' ? r : (r & 0x3) | 0x8;
+            return v.toString(16);
+        });
     };
     return (
         <div id={styles.sub_container} className="flex flex-col lg:flex-row">
@@ -318,7 +344,7 @@ const SalesPage: React.FC = () => {
                         </div>
                     </div>
                     <div id="clientListContent">
-                        {displayedSales
+                        {Object.values(valueSales)
                             .map((sales, index) => (
                                 <div key={index} onClick={() => handleClientClick(sales)}
                                      className="mt-2p flex items-center justify-start border-b pb-2 border-b-gray-300 cursor-pointer">
@@ -358,7 +384,7 @@ const SalesPage: React.FC = () => {
                     nextLabel={"Next"}
                     breakLabel={"..."}
                     breakClassName={"break-me"}
-                    pageCount={Math.ceil(sales.length / clientsPerPage)}
+                    pageCount={Math.ceil(Object.values(valueSales   ).length / clientsPerPage)}
                     marginPagesDisplayed={2}
                     pageRangeDisplayed={5}
                     onPageChange={handlePageClick}
@@ -445,25 +471,29 @@ const SalesPage: React.FC = () => {
                                     </div>
 
                                     {/* Services List */}
-                                    {servicesData?.map((selectedServices) => (
-                                        <div
-                                            key={selectedServices.id}
-                                            className={`m-2 pl-4 flex items-center border p-2p border-l-4 rounded`}
-                                            style={{
-                                                borderLeftColor: categoryData?.find(
-                                                    (cat) => cat.id === selectedServices.category
-                                                )?.appointmentColor,
-                                            }}
-                                            onClick={() => handleServiceClick(selectedServices)} // Add service to cart on click
-                                        >
-                                            <div className={`w-full`}>
-                                                {selectedServices.name + " - " + selectedServices.description}
+                                    {servicesData?.map((selectedServices) => {
+                                        const guid = generateGUID();
+                                        return (
+                                            <div
+                                                key={guid}
+                                                className={`m-2 pl-4 flex items-center border p-2p border-l-4 rounded`}
+                                                style={{
+                                                    borderLeftColor: categoryData?.find(
+                                                        (cat) => cat.id === Number(selectedServices.category)
+                                                    )?.appointmentColor,
+                                                }}
+                                                onClick={() => handleServiceClick(selectedServices)} // Add service to cart on click
+                                            >
+                                                <div className={`w-full`}>
+                                                    {selectedServices.name + " - " + selectedServices.description}
+                                                </div>
+                                                <div className={`w-1/4 text-right flex-auto`}>
+                                                    &#8369; {selectedServices.cost}
+                                                </div>
                                             </div>
-                                            <div className={`w-1/4 text-right flex-auto`}>
-                                                &#8369; {selectedServices.cost}
-                                            </div>
-                                        </div>
-                                    ))}
+                                        )
+
+                                    })}
 
                                     <button
                                         className="mt-4 px-4 py-2 bg-green-500 text-white rounded"
@@ -485,7 +515,8 @@ const SalesPage: React.FC = () => {
                                     </div>
                                     <div className={`flex`}>
                                         <div className={`flex flex-col p-2`}>
-                                            <div className={` border border-gray-300 border-4 hover:border-green-600 rounded cursor-pointer`}
+                                            <div
+                                                className={` border border-gray-300 border-4 hover:border-green-600 rounded cursor-pointer`}
                                                  onClick={() => setPaymentSelected('CASH')}
                                             >
                                                 <FaMoneyBill size={`40px`} style={{ marginBottom:'0',marginTop:'20px',marginLeft:'20px',marginRight:'20px', color: 'rgb(34 197 94)' }} />
@@ -589,7 +620,7 @@ const SalesPage: React.FC = () => {
                                                     className={`flex m-2 p-2 border border-l-4 rounded`}
                                                     style={{
                                                         borderLeftColor: categoryData?.find(
-                                                            (cat) => cat.id === service.category
+                                                            (cat) => cat.id === Number(service.category)
                                                         )?.appointmentColor,
                                                     }}
                                                 >
@@ -600,7 +631,11 @@ const SalesPage: React.FC = () => {
                                                         </div>
                                                     </div>
                                                     <div className={`w-1/4 flex-auto items-baseline text-right`}>
-                                                        &#8369; {service.cost}
+                                                        <div>&#8369; {service.cost}</div>
+                                                        <div className={`float-right`}><FaTrash
+                                                            className="trash-icon"
+                                                            onClick={() => handleDeleteService(service?.guid || '')}
+                                                        /></div>
                                                     </div>
                                                 </div>
                                             ))}
@@ -610,7 +645,7 @@ const SalesPage: React.FC = () => {
                                             <div className={`w-full flex flex-col items-start`}>
                                                 {/* Subtotal */}
                                                 <div className={`mb-2`}>
-                                                    Subtotal: &#8369; {addedServices.reduce((acc, service) => acc + service.cost, 0).toLocaleString()}
+                                                    Subtotal: &#8369; {addedServices.reduce((acc, service) => Number(acc) + Number(service.cost), 0).toLocaleString()}
                                                 </div>
 
                                                 {/* Tax (Assuming 12% VAT) */}

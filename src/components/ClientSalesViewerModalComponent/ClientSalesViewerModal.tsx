@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
 import { Sales } from '../../types/Sales'; // Adjust the import path
-import salesItems from '../../testData/salesItems.json';
+
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState, AppDispatch } from "../../redux/store";
 import Button from "../ButtonComponent/Button";
+import {selectSalesItemsBySaleId} from "../../redux/slices/salesItemsSlice";
 interface SalesDetailsModalProps {
     isOpen: boolean;
     onClose: () => void;
@@ -16,6 +19,8 @@ const ClientSalesViewerModal: React.FC<SalesDetailsModalProps> = ({
                                                                       onSave, // Destructure the onSave prop
                                                                   }) => {
     const [inputValue, setInputValue] = useState<string>('');
+    const dispatch = useDispatch<AppDispatch>();
+    const salesItems = useSelector((state: RootState) => selectSalesItemsBySaleId(state, salesDetails.id));
 
     if (!isOpen) return null;
 

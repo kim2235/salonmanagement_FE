@@ -2,6 +2,7 @@ import exp from "node:constants";
 
 export interface Service {
     id: number;
+    guid?: string;
     name: string;
     description: string;
     aftercareDescription: string;

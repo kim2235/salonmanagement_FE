@@ -5,13 +5,15 @@ import productCategoryReducer from "./slices/productCategorySlice";
 import serviceReducer from './slices/serviceSlice';
 import packageReducer from './slices/packageSlice';
 import productReducer from './slices/productSlice';
+import salesReducer from './slices/salesSlice';
+import salesItemReducer from './slices/salesItemsSlice';
 import {persistReducer, persistStore} from "redux-persist";
 
 
 const persistConfig = {
     key: 'root', // Key for the root storage
     storage,     // Use `localStorage` for persistence
-    whitelist: ['products','productCategories','services','serviceCategories'],
+    whitelist: ['products','productCategories','services','serviceCategories', 'sales', 'salesItems'],
 };
 
 const rootReducer = combineReducers({
@@ -19,7 +21,9 @@ const rootReducer = combineReducers({
     productCategories: productCategoryReducer,
     services: serviceReducer,
     packages: packageReducer,
-    products: productReducer
+    products: productReducer,
+    sales: salesReducer,
+    salesItems: salesItemReducer
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
