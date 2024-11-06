@@ -19,5 +19,6 @@ export interface SalesItems {
     cost: number;
     category: number | string;
     description: string;
+    isDone?: boolean;
     appointmentColor:  string | undefined;
 }

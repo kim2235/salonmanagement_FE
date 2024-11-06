@@ -18,9 +18,19 @@ const salesItemsSlice = createSlice({
     name: 'salesItems',
     initialState,
     reducers: {
+        updateServiceStatus: (
+            state,
+            action: PayloadAction<{ salesId: number; serviceId: number; isDone: boolean }>
+        ) => {
+            const { salesId, serviceId, isDone } = action.payload;
+            const item = state.valueSalesItems[salesId]?.find((service) => service.id === serviceId);
+
+            if (item) {
+                item.isDone = isDone;
+            }
+        },
         addOrUpdateSalesItem: (state, action: PayloadAction<SalesItems | SalesItems[]>) => {
             const items = Array.isArray(action.payload) ? action.payload : [action.payload];
-
             items.forEach(item => {
                 const saleId = item.salesId;
 
@@ -33,7 +43,7 @@ const salesItemsSlice = createSlice({
                 const existingIndex = state.valueSalesItems[saleId].findIndex(i => i.id === item.id);
 
                 if (existingIndex !== -1) {
-                    // Update existing item
+
                     state.valueSalesItems[saleId][existingIndex] = item;
                 } else {
                     // Add new item
@@ -44,5 +54,5 @@ const salesItemsSlice = createSlice({
     },
 });
 
-export const { addOrUpdateSalesItem } = salesItemsSlice.actions;
+export const { addOrUpdateSalesItem,updateServiceStatus } = salesItemsSlice.actions;
 export default salesItemsSlice.reducer;

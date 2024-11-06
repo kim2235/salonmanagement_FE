@@ -98,7 +98,6 @@ const SalesPage: React.FC = () => {
             email: client.email
         }
         setSelectedClient([selectedClient] );
-        console.log(selectedClient)
         setIsClientView(false);
     };
 
@@ -115,29 +114,30 @@ const SalesPage: React.FC = () => {
         if((Number(encodedCash) ?? 0 ) < addedServices.reduce((acc, service) => acc + service.cost, 0) * 1.12){
             status='unpaid';
         }
+        let counter = 0;
         const salesId = generateMicrotime();
         const salesItems = {
             id: salesId,
             client: selectedClient[0],
             services: addedServices.map((service) => ({
-                id: generateMicrotime(),
+                id: Number(`${generateMicrotime()}${counter++}`),
                 serviceId: service.id,
                 salesId: salesId,
                 name: service.name,
                 cost: service.cost,
                 category: service.category,
                 description: service.description,
+                isDone: false,
                 appointmentColor: categoryData?.find(cat => cat.id === service.category)?.appointmentColor
             })),
-            subtotal: addedServices.reduce((acc, service) => acc + service.cost, 0),
-            tax: addedServices.reduce((acc, service) => acc + service.cost, 0) * 0.12,
-            total: addedServices.reduce((acc, service) => acc + service.cost, 0) * 1.12,
+            subtotal: addedServices.reduce((acc, service) => Number(acc) + Number(service.cost), 0),
+            tax: addedServices.reduce((acc, service) => Number(acc) + Number(service.cost), 0) * 0.12,
+            total: addedServices.reduce((acc, service) => Number(acc) + Number(service.cost), 0) * 1.12,
             payment: paymentSelected ? encodedCash : null,
             status: status,
-            balance: (status === 'paid')? 0 : (addedServices.reduce((acc, service) => acc + service.cost, 0) * 1.12) - (Number(encodedCash) ?? 0),
+            balance: (status === 'paid')? 0 : (addedServices.reduce((acc, service) => Number(acc) + Number(service.cost), 0) * 1.12) - (Number(encodedCash) ?? 0),
             date: '2024-09-27'
         };
-
         const newSale: Sales = {
             id: salesItems.id,
             client: salesItems.client, // Matches `SelectedClient` type
@@ -149,6 +149,7 @@ const SalesPage: React.FC = () => {
             balance: salesItems.balance,
             date: salesItems.date
         };
+
         dispatch(addOrUpdateSale(newSale));
         dispatch(addOrUpdateSalesItem(salesItems.services))
 
@@ -156,9 +157,9 @@ const SalesPage: React.FC = () => {
 
         showSuccess();
         setHidden(false);
-        setActiveCategory(null); // Reset active category after fade-out transition
+        setActiveCategory(null);
         setPaymentSelected(null);
-        setPayment(null); // Reset active category after fade-out transition
+        setPayment(null);
         setFade(false);
         setSales(null);
     };
@@ -191,7 +192,8 @@ const SalesPage: React.FC = () => {
             ...service,
             guid: generateGUID(), // Attach a unique GUID to make each entry distinct
         };
-        setAddedServices((prevServices) => [...prevServices, newCartItem]); // Add the clicked service to the cart
+        setAddedServices((prevServices) => [...prevServices, newCartItem]);
+
     };
 
     const handleGoBack = () => {
@@ -371,7 +373,8 @@ const SalesPage: React.FC = () => {
                                         <TextView text={'0'}/>
                                     </div>
                                     <div className={`p-2 w-2/12 text-center ${styles.clientListingContentHeading}`}>
-                                        <TextView text={sales.total.toFixed(2).toString()}/>
+                                        <TextView text={sales.total != null ? sales.total.toFixed(2).toString() : "0.00"} />
+
                                     </div>
                                 </div>
                             ))}
@@ -384,7 +387,7 @@ const SalesPage: React.FC = () => {
                     nextLabel={"Next"}
                     breakLabel={"..."}
                     breakClassName={"break-me"}
-                    pageCount={Math.ceil(Object.values(valueSales   ).length / clientsPerPage)}
+                    pageCount={Math.ceil(Object.values(valueSales).length / clientsPerPage)}
                     marginPagesDisplayed={2}
                     pageRangeDisplayed={5}
                     onPageChange={handlePageClick}
@@ -651,12 +654,12 @@ const SalesPage: React.FC = () => {
                                                 {/* Tax (Assuming 12% VAT) */}
                                                 <div className={`mb-2`}>
                                                     Tax
-                                                    (12%): &#8369; {(addedServices.reduce((acc, service) => acc + service.cost, 0) * 0.12).toLocaleString()}
+                                                    (12%): &#8369; {(addedServices.reduce((acc, service) => Number(acc) + Number(service.cost), 0) * 0.12).toLocaleString()}
                                                 </div>
 
                                                 {/* Total (Subtotal + Tax) */}
                                                 <div className={`font-bold`}>
-                                                    Total: &#8369; {(addedServices.reduce((acc, service) => acc + service.cost, 0) * 1.12).toLocaleString()}
+                                                    Total: &#8369; {(addedServices.reduce((acc, service) => Number(acc) + Number(service.cost), 0) * 1.12).toLocaleString()}
                                                 </div>
                                                 {paymentSelected ? (
                                                     <div className={`flex font-bold`}>
