@@ -53,7 +53,7 @@ const SalesPage: React.FC = () => {
     const [servicesData, setServicesData] = useState<Service[]>();
     const [activeCategory, setActiveCategory] = useState<number | null>(null);
     const [activePayment, setPayment] = useState<number | null>(null);
-    const clientsPerPage = 4;
+    const clientsPerPage = 5;
     const cartNav = ['Services', 'Products'];
     const [fade, setFade] = useState<boolean>(false);
     const [hidden, setHidden] = useState<boolean>(false);
@@ -111,7 +111,7 @@ const SalesPage: React.FC = () => {
             return; // Exit the function if no client is selected
         }
 
-        if((Number(encodedCash) ?? 0 ) < addedServices.reduce((acc, service) => acc + service.cost, 0) * 1.12){
+        if((Number(encodedCash) ?? 0 ) < addedServices.reduce((acc, service) => Number(acc) + Number(service.cost), 0) * 1.12){
             status='unpaid';
         }
         let counter = 0;
@@ -346,7 +346,7 @@ const SalesPage: React.FC = () => {
                         </div>
                     </div>
                     <div id="clientListContent">
-                        {Object.values(valueSales)
+                        {Object.values(displayedSales)
                             .map((sales, index) => (
                                 <div key={index} onClick={() => handleClientClick(sales)}
                                      className="mt-2p flex items-center justify-start border-b pb-2 border-b-gray-300 cursor-pointer">
@@ -363,7 +363,7 @@ const SalesPage: React.FC = () => {
                                         <TextView
                                             text={sales.status}
                                             className={`rounded rounded-2xl pl-5 pr-5 w-10p font-bold capitalize 
-                        ${sales.status === 'unpaid' ? 'bg-gray-200 text-gray-600' : 'bg-green-200 text-green-600'}`}
+                                            ${sales.status === 'unpaid' ? 'bg-gray-200 text-gray-600' : 'bg-green-200 text-green-600'}`}
                                         />
                                     </div>
                                     <div className={`p-2 w-2/12 text-center ${styles.clientListingContentHeading}`}>

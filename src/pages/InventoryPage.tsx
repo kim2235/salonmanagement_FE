@@ -180,10 +180,10 @@ const InventoryPage: React.FC = () => {
                                             <TextView text={product.stockQuantity.toString()}/>
                                         </div>
                                         <div className="p-2 w-1/4 text-center">
-                                            <TextView text={product.stockQuantity.toString()}/>
+                                            <TextView text={product.stockQuantityUsed?.toString() || '0'}/>
                                         </div>
                                         <div className="p-2 w-1/4 text-center">
-                                            <TextView text={product.stockQuantity.toString()}/>
+                                            <TextView text={product.stockQuantityRemaining?.toString() || product.stockQuantity.toString()}/>
                                         </div>
                                         <div className="p-2 w-1/4 text-center">
                                             <Popover

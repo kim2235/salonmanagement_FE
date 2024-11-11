@@ -33,6 +33,16 @@ const serviceSlice = createSlice({
     },
 });
 
+export const selectServiceById = (state: RootState, serviceId: string) => {
+    // Iterate over categories and find the service by ID
+    for (let category in state.services.valueService) {
+        const service = state.services.valueService[category].find(s => s.id.toString() === serviceId);
+        if (service) {
+            return service; // Found the service
+        }
+    }
+    return null; // Return null if service not found
+};
 export const { addOrUpdateService } = serviceSlice.actions;
 export const selectServicesByCategory = (state: RootState, category: string) => state.services.valueService[category] || []; // Use string here
 export default serviceSlice.reducer;

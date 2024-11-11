@@ -5,6 +5,10 @@ import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from "../../redux/store";
 import Button from "../ButtonComponent/Button";
 import {selectSalesItemsBySaleId,updateServiceStatus} from "../../redux/slices/salesItemsSlice";
+import {selectServiceById} from "../../redux/slices/serviceSlice";
+import {Service} from "../../types/Service";
+import {Product} from "../../types/Product";
+import {addOrUpdateProduct} from "../../redux/slices/productSlice";
 interface SalesDetailsModalProps {
     isOpen: boolean;
     onClose: () => void;
@@ -21,7 +25,20 @@ const ClientSalesViewerModal: React.FC<SalesDetailsModalProps> = ({
     const [inputValue, setInputValue] = useState<string>('');
     const dispatch = useDispatch<AppDispatch>();
     const salesItems = useSelector((state: RootState) => selectSalesItemsBySaleId(state, salesDetails.id));
+    const services = useSelector((state: RootState) => state.services.valueService);
+    const productsState = useSelector((state: RootState) => state.products.valueProduct);
 
+    const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setInputValue(event.target.value); // update state with input value
+    };
+    const getServiceById = (serviceId: number) => {
+        // Loop through all categories to find the service with the given ID
+        for (const category in services) {
+            const service = services[category].find((s: Service) => s.id === serviceId);
+            if (service) return service;
+        }
+        return null; // Return null if no service is found
+    };
     if (!isOpen) return null;
 
     const handleSave = () => {
@@ -34,9 +51,32 @@ const ClientSalesViewerModal: React.FC<SalesDetailsModalProps> = ({
         onSave(updatedSales);
         onClose();
     };
-    const handleMarkAsDone = (serviceId: number) => {
+    const handleMarkAsDone = (serviceId: number,serviceItemId: number) => {
         dispatch(updateServiceStatus({ salesId: salesDetails.id, serviceId, isDone: true }));
+        const serviceToMark = getServiceById(serviceItemId);
 
+        serviceToMark?.serviceProductUsed?.forEach((productUsed: { id: number; amt: number }) => {
+
+            Object.keys(productsState).forEach((category) => {
+                const products =productsState[category];
+
+                const product = products.find((p: Product) => p.id === productUsed.id);
+
+                if (product) {
+
+                    const updatedProduct: Product = {
+                        ...product,
+                        stockQuantityRemaining: product.stockQuantityRemaining
+                            ? product.stockQuantityRemaining - productUsed.amt
+                            : product.stockQuantity - productUsed.amt,
+                        stockQuantityUsed: (product?.stockQuantityUsed || 0) + productUsed.amt,
+                    };
+
+                    dispatch(addOrUpdateProduct(updatedProduct));
+
+                }
+            });
+        });
     };
     return (
         <div className={`fixed inset-0 flex items-start justify-center z-50`}>
@@ -57,7 +97,7 @@ const ClientSalesViewerModal: React.FC<SalesDetailsModalProps> = ({
                                 <span className={`font-medium`}>{service.name}</span> -
                                 ${service.cost != null ? service.cost : '0.00'} : {service.description}
                                 <span
-                                    onClick={() => !service.isDone && handleMarkAsDone(service.id)} // Only trigger if not done
+                                    onClick={() => !service.isDone && handleMarkAsDone(service.id,service.serviceId)} // Only trigger if not done
                                     className={`ml-2 cursor-pointer text-blue-500 ${service.isDone ? 'line-through text-gray-400 cursor-not-allowed' : ''}`}
                                 >
                                 {service.isDone ? 'Done' : 'Mark this Done'}
@@ -67,7 +107,7 @@ const ClientSalesViewerModal: React.FC<SalesDetailsModalProps> = ({
                     </ul>
 
                 </div>
-                <h3 className={`font-semibold`}>Total: ${salesDetails.total.toFixed(2)}</h3>
+                <h3 className={`font-semibold`}> Total: ${salesDetails.total ? salesDetails.total.toFixed(2) : '0.00'}</h3>
 
                 {salesDetails.status === 'paid' && (
                     <div className={`mt-4`}>
@@ -94,7 +134,7 @@ const ClientSalesViewerModal: React.FC<SalesDetailsModalProps> = ({
                                 type="number"
                                 id="inputField"
                                 value={inputValue}
-                                onChange={(e) => setInputValue(e.target.value)}
+                                onChange={handleChange}
                                 className={`border border-gray-300 rounded-lg py-2 px-4 w-full`}
                                 placeholder="Enter amount"
                             />
