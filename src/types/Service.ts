@@ -16,7 +16,7 @@ export interface Service {
 
 export interface SelectedService {
     id: number;
-    serviceName: string;
+    name: string;
     category: string| number;
     price: number;
 }

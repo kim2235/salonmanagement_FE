@@ -6,10 +6,11 @@ import InputText from "../InputTextComponent/InputText"; // Import the FaTimes i
 interface MultiSelectDropdownProps {
     servicesByCategory: { [key: number]: Service[] }; // Match the context format
     onSelectionChange: (selectedServices: Service[]) => void;
+    defaultSelectedServices?: Service[];
 }
 
-const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({ servicesByCategory, onSelectionChange }) => {
-    const [selectedServices, setSelectedServices] = useState<Service[]>([]);
+const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({ servicesByCategory, onSelectionChange, defaultSelectedServices = [] }) => {
+    const [selectedServices, setSelectedServices] = useState<Service[]>(defaultSelectedServices);
     const [searchQuery, setSearchQuery] = useState<string>('');
     const [popoverVisible, setPopoverVisible] = useState<boolean>(false);
     const popoverRef = useRef<HTMLDivElement>(null);
@@ -55,21 +56,33 @@ const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({ servicesByCat
         }
     };
 
-    // Attach and clean up event listener for clicks outside
-    useEffect(() => {
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
 
     // Remove service from selected services.json
     const handleRemoveService = (serviceId: Number) => {
         setSelectedServices(prev => {
+            const isServiceSelected = prev.some(service => service.id === serviceId);
+
+            if (!isServiceSelected) {
+                return prev;  // If the service isn't in the list, don't do anything
+            }
+
             const updatedServices = prev.filter(service => service.id !== serviceId);
+
             setTimeout(() => onSelectionChange(updatedServices), 0);
             return updatedServices;
         });
     };
 
+
+    useEffect(() => {
+        setSelectedServices(defaultSelectedServices);
+    }, [defaultSelectedServices]);
+
+    // Attach and clean up event listener for clicks outside
+    useEffect(() => {
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
     return (
         <div className="relative">
             <InputText
@@ -84,30 +97,40 @@ const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({ servicesByCat
                 {selectedServices.map(service => (
                     <span key={service.id} className="flex items-center bg-gray-200 rounded px-2 py-1 m-1 text-sm">
                         {service.name}
-                        <FaTimes
-                            className="ml-2 cursor-pointer text-red-500 text-xs"
-                            onClick={() => handleRemoveService(service.id)}
-                        />
-                    </span>
+                        {/* Only show the remove icon if there are more than 1 selected service */}
+                        {selectedServices.length > 1 && (
+                            <FaTimes
+                                className="ml-2 cursor-pointer text-red-500 text-xs"
+                                onClick={() => handleRemoveService(service.id)}
+                            />
+                        )}
+</span>
+
                 ))}
             </div>
             {popoverVisible && searchQuery && filteredServices.length > 0 && (
                 <div ref={popoverRef} className="absolute top-full left-0 mt-1 w-64 max-h-60 bg-white border border-gray-300 rounded shadow-lg z-10 overflow-y-auto">
-                    {filteredServices.map(service => (
-                        <div key={service.id} className="p-2 border-b border-gray-200">
-                            <label className="flex items-center cursor-pointer">
-                                <input
-                                    type="checkbox"
-                                    checked={selectedServices.some(s => s.id === service.id)}
-                                    onChange={() => handleServiceChange(service)}
-                                    className="mr-2"
-                                />
-                                {service.name}
-                            </label>
-                        </div>
-                    ))}
+                    {filteredServices.map(service => {
+                        // Disable the checkbox if there's only one selected service
+                        const isLastItem = selectedServices.length === 1 && selectedServices.some(s => s.id === service.id);
+                        return (
+                            <div key={service.id} className="p-2 border-b border-gray-200">
+                                <label className="flex items-center cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        checked={selectedServices.some(s => s.id === service.id)}
+                                        onChange={() => handleServiceChange(service)}
+                                        className="mr-2"
+                                        disabled={isLastItem} // Disable if it's the last remaining item
+                                    />
+                                    {service.name}
+                                </label>
+                            </div>
+                        );
+                    })}
                 </div>
             )}
+
         </div>
     );
 };

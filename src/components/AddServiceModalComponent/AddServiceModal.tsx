@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from "../../redux/store";
-import { FaBox, FaFolder, FaPlus } from 'react-icons/fa';
+import {FaBox, FaFolder, FaPlus, FaTimes} from 'react-icons/fa';
 import Button from '../ButtonComponent/Button';
 import InputText from '../InputTextComponent/InputText';
 import TextView from "../TextViewComponent/TextView";
@@ -40,11 +40,6 @@ interface ServiceState {
     inventoryFields: Array<{ id: number; name: string; amt: number }>;
 }
 
-interface InventoryField {
-    inputValue: string;
-    suggestions: string[];
-}
-
 const AddServiceModal: React.FC<AddServiceModalProps> = ({
                                                              onClose,
                                                              option,
@@ -53,6 +48,7 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
                                                          }) => {
     const dispatch = useDispatch<AppDispatch>();
     const valueService = useSelector((state: RootState) => state.services.valueService);
+    const valuePackage = useSelector((state: RootState) => state.packages.valuePackage);
     const categories = useSelector((state: RootState) => state.serviceCategories.categories); // Access categories from the Redux store
 
     const [step, setStep] = useState<number>(forceStep);
@@ -71,17 +67,43 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
     });
 
     const [errors, setErrors] = useState<{ [key: string]: string }>({});
-    const [serviceType, setServiceType] = useState<'single' | 'package' | null>(null);
+
+    const [serviceDefault, setServiceDefault] = useState<any>([]);
     const [usedService, setUsedService] = useState<SelectedService[]>([]);
 
     const products = useSelector(selectFlatProducts);
+
+    useEffect(() => {
+        if(serviceToEdit?.id && !serviceToEdit.category ) {
+
+            const selectedPackage = valuePackage[serviceToEdit.id];
+            const selectedService = selectedPackage.map(pkg => pkg.services);
+            setServiceDefault(selectedService[0]);
+        }
+    }, [serviceToEdit, valuePackage]);
+
+    useEffect(() => {
+        if(serviceToEdit?.id && serviceToEdit.category) {
+
+            const selectedCategory = valueService[serviceToEdit.category];
+            const selectService = selectedCategory.find(service => service.id === serviceToEdit.id)?.serviceProductUsed
+            if (selectService) {
+                // Update the formData with the selected inventory fields
+                setFormData(prevFormData => ({
+                    ...prevFormData,
+                    inventoryFields: selectService // Populate with `selectService`
+                }));
+            }
+        }
+    }, [serviceToEdit, valueService]);
+
     const findProductById = (id: string | number): Product | undefined => {
         return products.find((product) => product.id === id);
     };
 
     const productOptions = products.map(product => ({
-        value: product.id, // Assuming each product has an 'id'
-        label: product.name // Assuming each product has a 'name'
+        value: product.id,
+        label: product.name
     }));
 
     const addInventoryFields = () => {
@@ -89,7 +111,7 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
             ...prevData,
             inventoryFields: [
                 ...prevData.inventoryFields,
-                { id: 0, name: '', amt: 1 } // Default values for a new inventory field
+                { id: 0, name: '', amt: 1 } 
             ]
         }));
     };
@@ -133,23 +155,22 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
             });
         };
 
-
-
-
     useEffect(() => {
-        if (usedService.length > 0) {
+
+        if (usedService && usedService.length > 0) {
             const totalPrice = usedService.reduce((sum, service) => {
-                // Ensure service.price is a number; if not, default to 0
+
                 const price = typeof service.price === 'number' ? service.price : Number(service.price) || 0;
                 return sum + price;
-            }, 0); // Start with 0
+            }, 0);
 
             setFormData((prevData) => ({
                 ...prevData,
-                packageCost: Number(totalPrice.toFixed(2)), // Format totalPrice to two decimal places
+                packageCost: Number(totalPrice.toFixed(2)),
             }));
         }
     }, [usedService]);
+
 
 
     const validateForm = () => {
@@ -220,15 +241,15 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
             };
 
             dispatch(addOrUpdatePackage(newPackage));
-            console.log(newPackage)
+
             handleGoBack();
             onClose();
         }
     };
 
-    const handleNextStep = (type: 'single' | 'package') => {
-        setServiceType(type);
-        setStep(type === 'single' ? 1 : 2);
+    const handleNextStep = (type: 'service' | 'package') => {
+
+        setStep(type === 'service' ? 1 : 2);
     };
 
     const handleGoBack = () => {
@@ -236,14 +257,25 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
     };
 
     const handleSelectionChange = (selectedServices: Service[]) => {
-        const services = selectedServices.map(s => ({
-            id: s.id,
-            serviceName: s.name,
-            category: s.category,
-            price: s.cost
-        }));
+        const services = selectedServices.map(s => {
+            console.log(s); // Log each service as it's being mapped
+            return {
+                id: s.id,
+                name: s.name,
+                category: s.category,
+                price: s.price || s.cost
+            };
+        });
         setUsedService(services);
     };
+
+    const removeInventoryField = (index: number) => {
+        setFormData((prevFormData) => ({
+            ...prevFormData,
+            inventoryFields: prevFormData.inventoryFields.filter((_, i) => i !== index)
+        }));
+    };
+
     const options = categories.map((category: Category) => ({
         label: category.name,  // Assuming Category has a 'name' property
         value: category.id,     // Assuming Category has an 'id' property
@@ -266,7 +298,7 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
                         </div>
                         <div className="flex justify-between mb-4">
                             <div className="w-1/2 border border-4 border-green-400 rounded-md hover:border-green-200 p-5 m-4">
-                                <Button onClick={() => handleNextStep('single')} size="large">
+                                <Button onClick={() => handleNextStep('service')} size="large">
                                     <FaFolder /><span className="ml-4">Single Service</span>
                                 </Button>
                                 <div className="m-4">
@@ -373,12 +405,19 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
                                                 onChange={(e) => handleInputChange("productQuantity", index)(e)}
                                             />
                                         </div>
+                                        <div className="w-fit">
+                                            <FaTimes
+                                                onClick={() => removeInventoryField(index)}
+                                                className="ml-2 cursor-pointer text-red-400 hover:text-red-700"
+                                                size={20} // Adjust size as needed
+                                            />
+                                        </div>
                                     </div>
                                 ))}
                             </div>
 
                             <Button className={`mb-2 mt-4`} onClick={handleAddService} size="large">
-                                {serviceToEdit ? 'Update Service' : 'Add Service'}
+                            {serviceToEdit ? 'Update Service' : 'Add Service'}
                             </Button>
                         </div>
                     </div>
@@ -399,7 +438,9 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
                                 onChange={handlePackageChange}
                             />
                             <MultiSelectDropdown servicesByCategory={valueService}
-                                                 onSelectionChange={handleSelectionChange}/>
+                                                 onSelectionChange={handleSelectionChange}
+                                                 defaultSelectedServices={serviceDefault}
+                            />
                             <InputText
                                 name="packageCost"
                                 type="number"

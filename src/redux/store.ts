@@ -13,7 +13,7 @@ import {persistReducer, persistStore} from "redux-persist";
 const persistConfig = {
     key: 'root', // Key for the root storage
     storage,     // Use `localStorage` for persistence
-    whitelist: ['products','productCategories','services','serviceCategories', 'sales', 'salesItems'],
+    whitelist: ['products','packages','productCategories','services','serviceCategories', 'sales', 'salesItems'],
 };
 
 const rootReducer = combineReducers({
