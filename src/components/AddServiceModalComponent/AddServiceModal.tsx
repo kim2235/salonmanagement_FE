@@ -37,6 +37,7 @@ interface ServiceState {
     serviceCost: number;
     packageCost: number;
     packageDuration: string;
+    pricingType: string;
     inventoryFields: Array<{ id: number; name: string; amt: number }>;
 }
 
@@ -54,6 +55,7 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
     const [step, setStep] = useState<number>(forceStep);
     const [serviceName, setServiceName] = useState<string>(serviceToEdit ? serviceToEdit.name : '');
     const [packageName, setPackageName] = useState<string>(serviceToEdit ? serviceToEdit.name : '');
+    const [percentageRate, setPercentageRate] = useState<number>();
 
     const [formData, setFormData] = useState<ServiceState>({
         serviceCategory: serviceToEdit?.category || 0,
@@ -63,12 +65,14 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
         serviceCost: serviceToEdit?.cost || 0,
         packageCost: serviceToEdit?.price || 0,
         packageDuration: serviceToEdit?.duration || '',
+        pricingType: serviceToEdit?.pricingType || '',
         inventoryFields: [{ id: 0, name: '', amt: 1 }],
     });
 
     const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
     const [serviceDefault, setServiceDefault] = useState<any>([]);
+
     const [usedService, setUsedService] = useState<SelectedService[]>([]);
 
     const products = useSelector(selectFlatProducts);
@@ -106,12 +110,27 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
         label: product.name
     }));
 
+    const pricingOptions =[
+        {
+        value: "service_pricing",
+        label: "Service Pricing"
+        },
+        {
+            value: "custom_pricing",
+            label: "Custom Pricing"
+        },
+        {
+            value: "percentage_discount",
+            label: "Percentage Discount"
+        },
+    ];
+
     const addInventoryFields = () => {
         setFormData(prevData => ({
             ...prevData,
             inventoryFields: [
                 ...prevData.inventoryFields,
-                { id: 0, name: '', amt: 1 } 
+                { id: 0, name: '', amt: 1 }
             ]
         }));
     };
@@ -120,7 +139,7 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
     const handleInputChange = (name: keyof ServiceState, index?: number) =>
         (event: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>) => {
             const { value } = event.target;
-
+            console.log("Changing:", name, "to:", value);
             setFormData((prevData) => {
                 const updatedData = { ...prevData };
 
@@ -147,8 +166,14 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
                         updatedData.serviceCost = Number(value);
                     } else if (name === 'serviceDescription' && typeof value === 'string') {
                         updatedData.serviceDescription = value;
+                    } else if (name === 'packageDuration' && typeof value === 'string') {
+                        updatedData.packageDuration = value;
+                    } else if (name === 'pricingType' && typeof value === 'string') {
+                        updatedData.pricingType = value;
+                    } else if (name === 'packageCost' && !isNaN(Number(value))) {
+                        updatedData.packageCost  = Number(value);
                     }
-                    // Add similar conditions for other fields as needed.
+
                 }
 
                 return updatedData;
@@ -161,7 +186,8 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
             const totalPrice = usedService.reduce((sum, service) => {
 
                 const price = typeof service.price === 'number' ? service.price : Number(service.price) || 0;
-                return sum + price;
+                const discount = percentageRate ? (price * percentageRate) / 100 : 0;
+                return sum + (price - discount);
             }, 0);
 
             setFormData((prevData) => ({
@@ -169,8 +195,7 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
                 packageCost: Number(totalPrice.toFixed(2)),
             }));
         }
-    }, [usedService]);
-
+    }, [usedService, percentageRate]);
 
 
     const validateForm = () => {
@@ -258,7 +283,6 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
 
     const handleSelectionChange = (selectedServices: Service[]) => {
         const services = selectedServices.map(s => {
-            console.log(s); // Log each service as it's being mapped
             return {
                 id: s.id,
                 name: s.name,
@@ -274,6 +298,10 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
             ...prevFormData,
             inventoryFields: prevFormData.inventoryFields.filter((_, i) => i !== index)
         }));
+    };
+
+    const handlePercentageChange = (value: number) => {
+        setPercentageRate(value);
     };
 
     const options = categories.map((category: Category) => ({
@@ -441,13 +469,51 @@ const AddServiceModal: React.FC<AddServiceModalProps> = ({
                                                  onSelectionChange={handleSelectionChange}
                                                  defaultSelectedServices={serviceDefault}
                             />
+                            <div className={`flex`}>
+                                <div className={`w-1/2 mr-2`}>
+                                    <InputText
+                                        name="duration"
+                                        type="text"
+                                        value={formData.packageDuration}
+                                        onChange={handleInputChange("packageDuration")}
+                                        placeholder={`Duration: ( e.g 1 d, 1 m, 1 y)`}
+                                    />
+                                </div>
+                                <div className={`w-1/2 ml-2`}>
+                                    <Select
+                                        name={`packagePricingOption`}
+                                        id="packagePricingOption"
+                                        value={formData.pricingType || ''}
+                                        onChange={handleInputChange("pricingType")} // Pass only the field name
+                                    >
+                                        <option value="">Select Pricing Arrangement</option>
+                                        {pricingOptions.map((option) => (
+                                            <option key={option.value} value={option.value}>
+                                                {option.label}
+                                            </option>
+                                        ))}
+                                    </Select>
+                                </div>
+                            </div>
+                            {formData.pricingType === 'percentage_discount' && (
+                                <InputText
+                                    name="percentageField"
+                                    placeholder={`Set Percentage Discount`}
+                                    type="number"
+                                    value={percentageRate || 0}
+                                    onChange={(e) => setPercentageRate(Number(e.target.value))}
+                                />
+                            )}
+
                             <InputText
                                 name="packageCost"
                                 type="number"
                                 value={formData.packageCost}
                                 onChange={handleInputChange("packageCost")}
-
+                                readOnly={formData.pricingType !== 'custom_pricing'}
                             />
+
+
                             <Button onClick={handleAddPackage} size="large">
                                 {serviceToEdit ? 'Update Package' : 'Add Package'}
                             </Button>

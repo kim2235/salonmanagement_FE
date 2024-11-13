@@ -7,6 +7,7 @@ export interface Service {
     description: string;
     aftercareDescription: string;
     cost: number;
+    pricingType?: string;
     price?: number;
     duration?: string;
     created_at: string;
