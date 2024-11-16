@@ -1,6 +1,7 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { RootState } from '../store';
-import { Service } from '../../types/Service';
+import {Service, ServiceProductUsed} from '../../types/Service';
+import { createSelector } from 'reselect';
 
 interface ServicesState {
     valueService: { [key: string]: Service[] }; // Change to string if category is string
@@ -43,6 +44,18 @@ export const selectServiceById = (state: RootState, serviceId: string) => {
     }
     return null; // Return null if service not found
 };
+
+export const getServicesByProductId = createSelector(
+    (state: RootState, productId: number) => productId, // Input selector for productId
+    (state: RootState) => state.services.valueService, // Input selector for services state
+    (productId, valueService) => {
+        // Logic to filter services by productId
+        const allServices = Object.values(valueService).flat();
+        return allServices.filter(service =>
+            service.serviceProductUsed?.some((product: ServiceProductUsed) => product.id === productId)
+        );
+    }
+);
 export const { addOrUpdateService } = serviceSlice.actions;
 export const selectServicesByCategory = (state: RootState, category: string) => state.services.valueService[category] || []; // Use string here
 export default serviceSlice.reducer;

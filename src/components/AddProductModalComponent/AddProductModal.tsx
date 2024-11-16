@@ -10,8 +10,6 @@ import InputText from '../InputTextComponent/InputText';
 import TextArea from '../TextAreaComponent/TextArea';
 import Select from "../SelectComponent/Select";
 
-
-
 interface AddProductModalProps {
     onClose: () => void;
     categories: Category[];

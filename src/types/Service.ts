@@ -21,6 +21,13 @@ export interface SelectedService {
     category: string| number;
     price: number;
 }
+
+export type ServiceProductUsed = {
+    id: number;
+    name: string;
+    amt: number;
+};
+
 export interface ServicesContextType {
     valueService: { [key: number]: Service[] }; // Data structure with category ID as key and array of services.json as value
     setValueService: React.Dispatch<React.SetStateAction<{ [key: number]: Service[] }>>;
