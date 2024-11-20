@@ -1,7 +1,7 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { RootState } from '../store';
-import {Product} from "../../types/Product";
-
+import { Product } from "../../types/Product";
+import { selectServicesByProductId } from "./serviceSlice";
 
 interface ProductsState {
     valueProduct: { [key: string]: Product[] }; // Dictionary with category as key
@@ -10,6 +10,22 @@ interface ProductsState {
 const initialState: ProductsState = {
     valueProduct: {},
 };
+
+export const deleteProduct = createAsyncThunk<void, number, { state: RootState }>(
+    'products/deleteProduct',
+    (productId, { getState, rejectWithValue }) => {
+        const state = getState();
+        const isProductInUse = Object.values(state.services.valueService).some(services =>
+            services.some(service =>
+                service.serviceProductUsed?.some(product => product.id === productId)
+            )
+        );
+
+        if (isProductInUse) {
+            return rejectWithValue('Cannot delete product: Product is being used in a service.');
+        }
+    }
+);
 
 const productsSlice = createSlice({
     name: 'products',
@@ -33,6 +49,18 @@ const productsSlice = createSlice({
                 state.valueProduct[category].push(product);
             }
         },
+    },
+    extraReducers: (builder) => {
+        builder.addCase(deleteProduct.fulfilled, (state, action) => {
+            const productId = action.meta.arg;
+
+            // Delete product logic
+            Object.keys(state.valueProduct).forEach(category => {
+                state.valueProduct[category] = state.valueProduct[category].filter(
+                    product => product.id !== productId
+                );
+            });
+        });
     },
 });
 

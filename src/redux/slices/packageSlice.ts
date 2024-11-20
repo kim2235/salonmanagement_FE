@@ -30,8 +30,6 @@ const packageSlice = createSlice({
             } else {
                 // Add new package
                 state.valuePackage[key].push(pkg);
-                console.log(state)
-                console.log(pkg)
             }
         },
     },

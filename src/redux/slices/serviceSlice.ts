@@ -56,6 +56,14 @@ export const getServicesByProductId = createSelector(
         );
     }
 );
+
+export const selectServicesByProductId = (state: RootState, productId: number): Service[] => {
+    const allServices = Object.values(state.services.valueService).flat();
+    return allServices.filter(service =>
+        service.serviceProductUsed?.some((product: ServiceProductUsed) => product.id === productId)
+    );
+};
+
 export const { addOrUpdateService } = serviceSlice.actions;
 export const selectServicesByCategory = (state: RootState, category: string) => state.services.valueService[category] || []; // Use string here
 export default serviceSlice.reducer;

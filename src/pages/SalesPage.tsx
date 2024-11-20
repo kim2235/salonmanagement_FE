@@ -29,6 +29,7 @@ import ClientSalesViewerModal from "../components/ClientSalesViewerModalComponen
 import {generateMicrotime} from "../utilities/microTimeStamp";
 import {sidebarItems} from "./menuitems/sidebarItems";
 import {addCategory} from "../redux/slices/serviceCategorySlice";
+import {Package} from "../types/Package";
 
 
 const salesData = sales
@@ -38,6 +39,8 @@ const SalesPage: React.FC = () => {
     const dispatch = useDispatch<AppDispatch>();
     const valueService = useSelector((state: RootState) => state.services.valueService);
     const valueSales = useSelector((state: RootState) => state.sales.valueSales);
+    const packages = useSelector((state:RootState) => state.packages.valuePackage);
+    const products = useSelector((state:RootState) => state.products.valueProduct);
     const categories = useSelector((state: RootState) => state.serviceCategories.categories);
 
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -54,7 +57,7 @@ const SalesPage: React.FC = () => {
     const [activeCategory, setActiveCategory] = useState<number | null>(null);
     const [activePayment, setPayment] = useState<number | null>(null);
     const clientsPerPage = 5;
-    const cartNav = ['Services', 'Products'];
+    const cartNav = ['Services', 'Packages','Products'];
     const [fade, setFade] = useState<boolean>(false);
     const [hidden, setHidden] = useState<boolean>(false);
     const [addedServices, setAddedServices] = useState<Service[]>([]);
@@ -136,7 +139,7 @@ const SalesPage: React.FC = () => {
             payment: paymentSelected ? encodedCash : null,
             status: status,
             balance: (status === 'paid')? 0 : (addedServices.reduce((acc, service) => Number(acc) + Number(service.cost), 0) * 1.12) - (Number(encodedCash) ?? 0),
-            date: '2024-09-27'
+            date: (new Date()).toString()
         };
         const newSale: Sales = {
             id: salesItems.id,
@@ -231,7 +234,6 @@ const SalesPage: React.FC = () => {
 
     const handleCartNavClick = (index: number) => {
         setActiveIndex(index);
-        console.log(`${cartNav[index]} clicked`);
     };
 
 
@@ -243,10 +245,8 @@ const SalesPage: React.FC = () => {
     };
 
     const updateSalesRecord = (updatedSales: Sales) => {
-        setSaveSales((prevData) =>
-            prevData.map((sale) => (sale.id === updatedSales.id ? updatedSales : sale))
-        );
 
+        dispatch(addOrUpdateSale(updatedSales));
         // Optionally, you can send a request to your API to save the updated sales
         // e.g., axios.put(`/api/sales/${updatedSales.id}`, updatedSales)
         //      .then(response => { /* Handle success */ })
@@ -442,23 +442,80 @@ const SalesPage: React.FC = () => {
                                     </div>
 
                                     {/* Category List */}
-                                    <div className={`border border-gray-300 h-full w-full rounded`}>
-                                        {categoryData?.map((category) => (
-                                            <div
-                                                key={category.id}
-                                                className={`m-2 pl-4 flex items-center border p-2p border-l-4 rounded`}
-                                                style={{borderLeftColor: category.appointmentColor}}
-                                                onClick={() => handleCategoryClick(Number(category.id))}
-                                            >
-                                                <div className={`w-full`}>
-                                                    <TextView text={category.name}/>
+                                    {activeIndex === 0 && (
+                                        <div className={` h-full w-full rounded`}>
+                                            {categoryData?.map((category) => (
+                                                <div
+                                                    key={category.id}
+                                                    className={`m-2 pl-4 flex items-center border p-2p border-l-4 rounded`}
+                                                    style={{borderLeftColor: category.appointmentColor}}
+                                                    onClick={() => handleCategoryClick(Number(category.id))}
+                                                >
+                                                    <div className={`w-full`}>
+                                                        <TextView text={category.name}/>
+                                                    </div>
+                                                    <div className={`flex-auto`}>
+                                                        <FaChevronRight/>
+                                                    </div>
                                                 </div>
-                                                <div className={`flex-auto`}>
-                                                    <FaChevronRight/>
+                                            ))}
+                                        </div>
+                                    )}
+                                    {activeIndex === 1 && packages && Object.keys(packages).length > 0 && Object.keys(packages).map((id) => {
+                                            const packaging = packages[parseInt(id)]; // Access the package by id
+                                            if (!packaging) {
+                                                return null; // or handle the undefined case
+                                            }
+                                            return (
+                                                <div key={id} >
+                                                    {/* Render the package data, assuming 's' is an array of packages */}
+                                                    {packaging.map((service) => (
+                                                        <div key={service.id} className={`border mt-2 mb-2 p-2p rounded-md`}
+                                                             style={{borderLeftWidth: '8px',
+                                                                 borderLeftColor: 'rgb(223 198 198)'}}>
+                                                            <div className={`flex flex-row`}>
+                                                                <div className={`w-1/2`}>
+                                                                    {service.name} - {service.description}
+                                                                </div>
+                                                                <div className="w-1/2 ml-auto">
+                                                                    <div className="flex justify-end items-center">
+                                                                        <div className="mr-2">
+                                                                            PHP {service.price}
+                                                                        </div>
+
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    ))}
                                                 </div>
-                                            </div>
-                                        ))}
-                                    </div>
+                                            );
+                                        }
+                                    )}
+
+                                    {activeIndex === 2 && products && Object.keys(products).length > 0 && Object.keys(products).map((id) => {
+                                            const packaging = products[parseInt(id)]; // Access the package by id
+                                            if (!packaging) {
+                                                return null; // or handle the undefined case
+                                            }
+                                            return (
+                                                <div key={id} >
+                                                    {/* Render the package data, assuming 's' is an array of packages */}
+                                                    {packaging.map((service) => (
+                                                        <div key={service.id} className={`border mt-2 mb-2 p-2p rounded-md`}
+                                                             style={{borderLeftWidth: '8px',
+                                                                 borderLeftColor: 'rgb(223 198 198)'}}>
+                                                            <div className={`flex flex-row`}>
+                                                                <div className={`w-1/2`}>
+                                                                    {service.name} - {service.description}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            );
+                                        }
+                                    )}
                                 </div>
                             )}
                             {activeCategory !== null && (
@@ -495,7 +552,6 @@ const SalesPage: React.FC = () => {
                                                 </div>
                                             </div>
                                         )
-
                                     })}
 
                                     <button
@@ -514,7 +570,6 @@ const SalesPage: React.FC = () => {
                                         <h2 className="text-2xl">
                                             Payment Selection
                                         </h2>
-
                                     </div>
                                     <div className={`flex`}>
                                         <div className={`flex flex-col p-2`}>
@@ -543,7 +598,6 @@ const SalesPage: React.FC = () => {
                                         </div>
                                     </div>
 
-
                                     <Button
                                         className="mt-4 px-4 py-2 bg-green-500 text-white rounded"
                                         onClick={handleGoBack}
@@ -554,8 +608,6 @@ const SalesPage: React.FC = () => {
                             )}
 
                             <div className={`m-2p w-1/2 flex-col border-l border-l-gray-300 h-auto`}>
-
-
                                 {/* Conditional rendering based on whether Add Client button was clicked */}
                                 {isClientView ? (
                                     // Empty Div (after clicking Add Client)

@@ -1,7 +1,8 @@
 import React, {useEffect, useState} from 'react';
-import { useSelector,useDispatch } from 'react-redux';
-import {RootState, AppDispatch} from "../redux/store";
-import {addOrUpdateProduct} from "../redux/slices/productSlice";
+import { useSelector } from 'react-redux';
+import {RootState} from "../redux/store";
+import {useAppDispatch} from "../hook";
+import {addOrUpdateProduct, deleteProduct} from "../redux/slices/productSlice";
 import {addCategory, updateCategory} from "../redux/slices/productCategorySlice";
 import {FaBars, FaEllipsisV, FaPlus, FaWrench} from "react-icons/fa";
 import TextView from "../components/TextViewComponent/TextView";
@@ -16,17 +17,22 @@ import AddCategoryModal from "../components/AddCategoryModalComponent/AddCategor
 import ProductCategoryListingModal from "../components/ProductCategoryListingModalComponent/ProductCategoryListingModal";
 import EditProductModal from "../components/EditProductModalComponent/EditProductModal";
 import UsageProductModal from "../components/UsageProductModalComponent/UsageProductModal";
+import NotificationModal from "../components/NotificationModalComponent/NotificationModal";
 import {sidebarItems} from "./menuitems/sidebarItems";
 import {useNavigate} from "react-router-dom";
 import {Product} from "../types/Product";
 import {Category} from "../types/Category";
-import usageProductModal from "../components/UsageProductModalComponent/UsageProductModal";
+import ReactPaginate from "react-paginate";
+
 
 
 const InventoryPage: React.FC = () => {
     const navigate = useNavigate();
     //Modal configs
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+    const [isNotifModalOpen, setIsNotifModalOpen] = useState<boolean>(false);
+    const [notifMessage, setNotifMessage] = useState('');
+    const [isSuccess, setIsSuccess] = useState(true);
     const [isCategoryModalOpen, setIsCategoryModalOpen] = useState<boolean>(false);
     const [isManageCategoryModalOpen, setIsManageCategoryModalOpen] = useState<boolean>(false);
     const [showEditModal, setShowEditModal] = useState<boolean>(false);
@@ -36,8 +42,7 @@ const InventoryPage: React.FC = () => {
     //Connected to Redux Store
     const products = useSelector((state: RootState) => state.products.valueProduct || []);
     const categoryData = useSelector((state: RootState) => state.productCategories.categories || []);
-    const serviceData = useSelector((state: RootState) => state.services.valueService || []);
-    const dispatch = useDispatch<AppDispatch>();
+    const dispatch = useAppDispatch();
     //Redux Store END
 
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -52,6 +57,19 @@ const InventoryPage: React.FC = () => {
             navigate(id);
         }
     };
+    const clientsPerPage = 5;
+    const [currentPage, setCurrentPage] = useState(0);
+    const flattenedProducts = Object.values(products)
+        .flat()
+        .filter((product) => product && Object.keys(product).length > 0);
+
+    let displayedProducts = flattenedProducts.slice(
+        currentPage * clientsPerPage,
+        (currentPage + 1) * clientsPerPage
+    );
+
+    const pageCount = Math.ceil(flattenedProducts.length / clientsPerPage);
+
 
     const handleSaveCategory = (updatedCategory: Category) => {
         dispatch(updateCategory(updatedCategory))
@@ -70,9 +88,39 @@ const InventoryPage: React.FC = () => {
         setShowUsageModal(true);
         setSelectedProductId(Number(product.id));
     };
+    const handleDelete = async (productId: number) => {
+        try {
+            const resultAction = await dispatch(deleteProduct(productId));
 
+            if (deleteProduct.rejected.match(resultAction)) {
+                // If rejected, set error message from the action's payload
+                setIsSuccess(false);
+                setNotifMessage(resultAction.payload as string || 'An unexpected error occurred');
+            } else {
+                // If successful, show success notification
+                setNotifMessage('Product Deleted from the list');
+                setIsSuccess(true);
+            }
+        } catch (error) {
+            // Fallback for any unexpected errors not handled in the thunk
+            setIsSuccess(false);
+            setNotifMessage('An unexpected error occurred');
+        } finally {
+            setIsNotifModalOpen(true);
+        }
+    };
+    const handlePageClick = (data: { selected: number }) => {
+        setCurrentPage(data.selected);
+    };
     return (
-        <div className={`flex flex-col lg:flex-row h-screen`}>
+        <div className={`flex flex-col lg:flex-row`}>
+            {/* Notification Modal */}
+            <NotificationModal
+                isOpen={isNotifModalOpen}
+                onClose={() => setIsNotifModalOpen(false)}
+                message={notifMessage}
+                isSuccess={isSuccess}
+            />
             {isModalOpen && (
                 <AddProductModal
                     onClose={() => setIsModalOpen(false)}
@@ -172,8 +220,8 @@ const InventoryPage: React.FC = () => {
                     </div>
                     <div id="clientListContent">
                         <div className={`mt-2p flex flex-col items-center justify-start border-b border-b-gray-300`}>
-                            {Object.keys(products).length > 0 ? (
-                                Object.values(products).flat().map((product, index) => (
+                            {Object.keys(displayedProducts).length > 0 ? (
+                                Object.values(displayedProducts).flat().map((product, index) => (
                                     <div key={product.id || index} className={`flex w-full m-2p justify-start`}>
                                         <div className="p-2 w-[515px] flex justify-start">
                                             {product.thumbnail ? (
@@ -217,7 +265,7 @@ const InventoryPage: React.FC = () => {
                                                              style={{padding: '8px', cursor: 'pointer'}}>
                                                             Edit
                                                         </div>
-                                                        <div onClick={() => console.log( product.id)}
+                                                        <div onClick={() => handleDelete( Number(product.id))}
                                                              style={{padding: '8px', cursor: 'pointer'}}>
                                                             Delete
                                                         </div>
@@ -238,6 +286,18 @@ const InventoryPage: React.FC = () => {
                             )}
                         </div>
                     </div>
+                    <ReactPaginate
+                        previousLabel={"Previous"}
+                        nextLabel={"Next"}
+                        breakLabel={"..."}
+                        breakClassName={"break-me"}
+                        pageCount={pageCount}
+                        marginPagesDisplayed={2}
+                        pageRangeDisplayed={5}
+                        onPageChange={handlePageClick}
+                        containerClassName={"pagination"}
+                        activeClassName={"active"}
+                    />
                 </div>
             </div>
 
