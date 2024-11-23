@@ -17,7 +17,7 @@ const salesSlice = createSlice({
         addOrUpdateSale: (state, action: PayloadAction<Sales>) => {
             const sale = action.payload;
             const key = sale.id;
-
+            
             state.valueSales[key] = sale;
         },
     },

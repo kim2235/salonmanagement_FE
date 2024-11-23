@@ -33,7 +33,7 @@ const ClientSalesViewerModal: React.FC<SalesDetailsModalProps> = ({
         setInputValue(event.target.value); // update state with input value
     };
     const getServiceById = (serviceId: number) => {
-        // Loop through all categories to find the service with the given ID
+
         for (const category in services) {
             const service = services[category].find((s: Service) => s.id === serviceId);
             if (service) return service;
@@ -46,7 +46,8 @@ const ClientSalesViewerModal: React.FC<SalesDetailsModalProps> = ({
         const updatedSales: Sales = {
             ...salesDetails,
             status: Number(inputValue) >= Number(salesDetails.balance) ? 'paid' : 'unpaid',
-            payment: Number(inputValue) || 0, // Update the payment with the input value
+            payment: Number(inputValue) || 0,
+            balance: Number(salesDetails.balance) - Number(inputValue)
         };
         onSave(updatedSales);
         onClose();
@@ -82,6 +83,7 @@ const ClientSalesViewerModal: React.FC<SalesDetailsModalProps> = ({
         const state = store.getState();
         return selectPackageById(state, id);
     };
+
     return (
         <div className={`fixed inset-0 flex items-start justify-center z-50`}>
             <div className={`absolute inset-0 bg-black opacity-50`} />
@@ -94,10 +96,10 @@ const ClientSalesViewerModal: React.FC<SalesDetailsModalProps> = ({
                 </div>
                 <h3 className={`font-semibold mb-2`}>Services:</h3>
                 <div className={`overflow-y-auto max-h-60`}>
-                    <ul className={`list-none list-inside mb-4`}>
+                    <ul key={`1`} className={`list-none list-inside mb-4`}>
                         Service/Packages that this client avail:
                         {salesItems.map((service) => (
-                            <li key={service.id} className={`m-2 border border-emerald-300 p-2`}>
+                            <li key={service.id} className={`m-2 border border-emerald-300 p-2 ${service.isDone ? 'bg-gray-300' : ''}`}>
                                 <div>
                                     <span className={`font-medium`}>
                                         <TextView text={`Name: `}></TextView>
@@ -106,9 +108,9 @@ const ClientSalesViewerModal: React.FC<SalesDetailsModalProps> = ({
                                         <TextView text={service.name}></TextView>
                                     </span>
                                     <span
-                                    onClick={() => !service.isDone && handleMarkAsDone(service.id, service.serviceId)} // Only trigger if not done
-                                    className={`ml-2 cursor-pointer text-blue-500 ${service.isDone ? 'line-through text-gray-400 cursor-not-allowed' : ''}`}
-                                >
+                                        onClick={() => !service.isDone && handleMarkAsDone(service.id, service.serviceId)} // Only trigger if not done
+                                        className={`ml-2 cursor-pointer text-blue-500 ${service.isDone ? 'text-emerald-400 cursor-not-allowed font-semibold' : ''}`}
+                                    >
                                 {service.isDone ? 'Done' : 'Mark this Done'}
                                 </span>
                                 </div>
@@ -125,15 +127,17 @@ const ClientSalesViewerModal: React.FC<SalesDetailsModalProps> = ({
                                         <TextView text={`Cost: `}></TextView>
                                     </span>
                                     <span className={`font-light`}>
-                                        $ <TextView text={service.cost != null ? service.cost.toString() : '0.00'}></TextView>
+                                        $ <TextView
+                                        text={service.cost != null ? service.cost.toString() : '0.00'}></TextView>
                                     </span>
                                 </div>
 
 
                                 {!service.category ? (
                                     getPackageById(service.serviceId.toString()).map((pkg) => (
-                                        <div className={``}>
-                                            <TextView text={`Package Inclusion: `} className={`font-semibold`}></TextView>
+                                        <div key={pkg.id} className={``}>
+                                            <TextView text={`Package Inclusion: `}
+                                                      className={`font-semibold`}></TextView>
                                             <ul key={pkg.id} className={``}>
                                                 {pkg.services.map((selected) => (
                                                     <li key={selected.id}>- {selected.name}</li>
@@ -149,38 +153,45 @@ const ClientSalesViewerModal: React.FC<SalesDetailsModalProps> = ({
                 </div>
                 <h3 className={`font-semibold`}> Total:
                     ${salesDetails.total ? salesDetails.total.toFixed(2) : '0.00'}</h3>
+                {salesDetails.status !== 'paid' ? (
+                    <h3 className={`font-semibold`}> Balance:
+                    ${salesDetails.balance ? salesDetails.balance.toFixed(2) : '0.00'}</h3>
+                    ) : (null)
+                }
+
 
                 {salesDetails.status === 'paid' && (
                     <div className={`mt-4`}>
                         <label className={`block mb-2 font-semibold`} htmlFor="inputField">
                             Paid Amount:
                         </label>
-                            <input
-                                type="text"
-                                id="inputField"
-                                value={salesDetails.payment}
-                                className={`pointer-events-none border bg-gray-200 border-gray-300 rounded-lg py-2 px-4 w-full disabled`}
-                                placeholder="Enter amount"
-                            />
-                        </div>
-                    )}
+                        <input
+                            type="text"
+                            id="inputField"
+                            value={salesDetails.payment}
+                            readOnly
+                            className={`pointer-events-none border bg-gray-200 border-gray-300 rounded-lg py-2 px-4 w-full disabled`}
+                            placeholder="Enter amount"
+                        />
+                    </div>
+                )}
 
-                    {/* Conditional rendering of the input box */}
-                    {salesDetails.status === 'unpaid' && (
-                        <div className={`mt-4`}>
-                            <label className={`block mb-2 font-semibold`} htmlFor="inputField">
-                                Enter Payment Amount:
-                            </label>
-                            <input
-                                type="number"
-                                id="inputField"
-                                value={inputValue}
-                                onChange={handleChange}
-                                className={`border border-gray-300 rounded-lg py-2 px-4 w-full`}
-                                placeholder="Enter amount"
-                            />
-                        </div>
-                    )}
+                {/* Conditional rendering of the input box */}
+                {salesDetails.status === 'unpaid' && (
+                    <div className={`mt-4`}>
+                        <label className={`block mb-2 font-semibold`} htmlFor="inputField">
+                            Enter Payment Amount:
+                        </label>
+                        <input
+                            type="number"
+                            id="inputField"
+                            value={inputValue}
+                            onChange={handleChange}
+                            className={`border border-gray-300 rounded-lg py-2 px-4 w-full`}
+                            placeholder="Enter amount"
+                        />
+                    </div>
+                )}
 
 
                 {/* Save button */}
