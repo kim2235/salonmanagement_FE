@@ -32,6 +32,8 @@ const AddProductModal: React.FC<AddProductModalProps> = ({ onClose, categories }
         reorderQuantity: 1,
         measurementUnit: 'ml',
         measurementAmount: 1,
+        isoverthecounter: false,
+        price: 0
     });
     const unitOptions = [
         {
@@ -81,6 +83,8 @@ const AddProductModal: React.FC<AddProductModalProps> = ({ onClose, categories }
                 reorderQuantity: formData.reorderQuantity,
                 measurementUnit: formData.measurementUnit,
                 measurementAmount: formData.measurementAmount,
+                isoverthecounter: formData.isoverthecounter,
+                price: formData.price,
             };
             dispatch(addOrUpdateProduct(newProduct));
             onClose();
@@ -222,14 +226,41 @@ const AddProductModal: React.FC<AddProductModalProps> = ({ onClose, categories }
                         </div>
                     </div>
                     <div className={`w-1/3 flex flex-col items-center`}>
-                        <label className={`block text-sm font-medium mb-2`}>Upload Thumbnail</label>
-                        <input name={`thumbnail`} type="file" accept="image/*" onChange={handleFileChange} className="mb-2 border p-2 w-full" />
-                        {formData.thumbnail && (
-                            <div className="mt-2">
-                                <img src={formData.thumbnail} alt="Thumbnail Preview" className="w-full h-48 object-cover rounded border" />
+                        <div>
+                            <label className={`block text-sm font-medium mb-2`}>Upload Thumbnail</label>
+                            <input name={`thumbnail`} type="file" accept="image/*" onChange={handleFileChange}
+                                   className="mb-2 border p-2 w-full"/>
+                            {formData.thumbnail && (
+                                <div className="mt-2">
+                                    <img src={formData.thumbnail} alt="Thumbnail Preview"
+                                         className="w-full h-48 object-cover rounded border"/>
+                                </div>
+                            )}
+                        </div>
+                        <div>
+                            <input
+                                name={`isoverthecounter`}
+                                type="checkbox"
+                                checked={formData.isoverthecounter} onChange={handleInputChange}
+                                className={`mr-2`}
+                            />
+                            <label>For Over the Counter?</label>
+                        </div>
+                        {formData.isoverthecounter && ( // Conditional rendering for the price input
+                            <div>
+                                <label className="block text-sm font-medium mb-2">Price</label>
+                                <InputText
+                                    name="price"
+                                    type="number"
+                                    placeholder="Enter Price"
+                                    value={formData.price}
+                                    onChange={handleInputChange}
+                                />
                             </div>
                         )}
+
                     </div>
+
                 </div>
                 <Button onClick={handleAddProduct} size="medium" className={`mt-4`}>
                     Add Product

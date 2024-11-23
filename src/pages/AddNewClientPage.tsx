@@ -34,8 +34,12 @@ const AddNewClientPage: React.FC = () => {
 
     const handleItemClick = (id: string, type: 'link' | 'div') => {
         setActiveItem(id);
+
         if (type === 'link') {
-            navigate(id);
+            const item = sidebarItems.find((item) => item.id === id);
+            if (item?.href) {
+                navigate(item.href); // Use the `href` value for navigation
+            }
         }
     };
 

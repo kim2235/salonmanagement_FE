@@ -30,6 +30,7 @@ import {sidebarItems} from "./menuitems/sidebarItems";
 import {Package} from "../types/Package";
 import {selectPackageById} from "../services/packageServices";
 import {formatDate} from "../utilities/dateFormatting";
+import {Product} from "../types/Product";
 
 
 const salesData = sales
@@ -73,8 +74,12 @@ const SalesPage: React.FC = () => {
 
     const handleItemClick = (id: string, type: 'link' | 'div') => {
         setActiveItem(id);
+
         if (type === 'link') {
-            navigate(id);
+            const item = sidebarItems.find((item) => item.id === id);
+            if (item?.href) {
+                navigate(item.href); // Use the `href` value for navigation
+            }
         }
     };
     const showSuccess = () => {
@@ -125,6 +130,7 @@ const SalesPage: React.FC = () => {
             client: selectedClient[0],
             services: cartItems.map((service) => ({
                 id: Number(`${generateMicrotime()}${counter++}`),
+                isGoods:service.isGoods || false,
                 serviceId: service.id,
                 salesId: salesId,
                 name: service.name,
@@ -144,7 +150,7 @@ const SalesPage: React.FC = () => {
         };
         const newSale: Sales = {
             id: salesItems.id,
-            client: salesItems.client, // Matches `SelectedClient` type
+            client: salesItems.client,
             subtotal: salesItems.subtotal,
             tax: salesItems.tax,
             total: salesItems.total,
@@ -196,13 +202,13 @@ const SalesPage: React.FC = () => {
             id: service.id, // Service id
             guid: guid,
             serviceId: service.id, // Assuming the same id for service and serviceId
-            salesId: 0, // Adjust based on your sales logic
+            salesId: 0,
             name: service.name,
             cost: service.cost || 0,
             category: service.category || "", // Service category
             description: service.description || "", // Service description
             isDone: false, // Set the default value for isDone if needed
-            appointmentColor: service.aftercareDescription || "", // You can adjust this based on your data
+            appointmentColor: service.aftercareDescription || "",
         };
 
         setCartItems((prevItems) => [...prevItems, newCartItem]);
@@ -213,13 +219,32 @@ const SalesPage: React.FC = () => {
             id: pkg.id, // Package id
             guid:guid,
             serviceId: pkg.id, // Assuming the same id for package and serviceId
-            salesId: 0, // Adjust based on your sales logic
+            salesId: 0,
             name: pkg.name,
-            cost: pkg.price || 0, // Use the price of the package
+            cost: pkg.price || 0,
             category: pkg.category || "", // Package category
             description: pkg.description || "", // Package description
             isDone: false, // Set the default value for isDone if needed
             appointmentColor: pkg.aftercareDescription || "", // You can adjust this based on your data
+        };
+
+        setCartItems((prevItems) => [...prevItems, newCartItem]);
+    };
+
+    const handleProductClick = (product: Product) => {
+        const guid = generateGUID();
+        const newCartItem: SalesItems = {
+            id: Number(product.id), // Product id
+            guid:guid,
+            serviceId: Number(product.id),
+            isGoods: true,
+            salesId: 0,
+            name: product.name,
+            cost: product.price || 0,
+            category: product.category || "",
+            description: product.description || "",
+            isDone: false,
+            appointmentColor: "",
         };
 
         setCartItems((prevItems) => [...prevItems, newCartItem]);
@@ -523,30 +548,55 @@ const SalesPage: React.FC = () => {
                                         }
                                     )}
 
-                                    {activeIndex === 2 && products && Object.keys(products).length > 0 && Object.keys(products).map((id) => {
-                                        const packaging = products[parseInt(id)]; // Access the package by id
-                                        if (!packaging) {
-                                            return null; // or handle the undefined case
-                                        }
-                                        return (
-                                            <div key={id}>
-                                                {/* Render the package data, assuming 's' is an array of packages */}
-                                                {packaging.map((service) => (
-                                                    <div key={service.id} className={`border mt-2 mb-2 p-2p rounded-md`}
-                                                         style={{
-                                                             borderLeftWidth: '8px',
-                                                             borderLeftColor: 'rgb(223 198 198)'}}>
+                                    {activeIndex === 2 &&
+                                        products &&
+                                        Object.keys(products).length > 0 &&
+                                        Object.keys(products).map((id) => {
+                                            const packaging = products[parseInt(id)]; // Access the package by id
+
+                                            if (!packaging) {
+                                                return null; // Handle undefined case
+                                            }
+
+                                            // Filter products where `isoverthecounter === true`
+                                            const filteredServices = packaging.filter((service) => service.isoverthecounter === true);
+
+                                            if (filteredServices.length === 0) {
+                                                return null; // Skip if no matching products
+                                            }
+
+                                            return (
+                                                <div key={id}>
+                                                    {/* Render the filtered package data */}
+                                                    {filteredServices.map((service) => (
+                                                        <div
+                                                            key={service.id}
+                                                            className={`border mt-2 mb-2 p-2 rounded-md`}
+                                                            style={{
+                                                                borderLeftWidth: '8px',
+                                                                borderLeftColor: 'rgb(223 198 198)',
+                                                            }}
+                                                            onClick={()=>{handleProductClick(service)}}
+                                                        >
                                                             <div className={`flex flex-row`}>
                                                                 <div className={`w-1/2`}>
                                                                     {service.name} - {service.description}
+                                                                </div>
+                                                                <div className="w-1/2 ml-auto">
+                                                                    <div className="flex justify-end items-center">
+                                                                        <div className="mr-2">
+                                                                            PHP {service.price}
+                                                                        </div>
+
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                         </div>
                                                     ))}
                                                 </div>
                                             );
-                                        }
-                                    )}
+                                        })}
+
                                 </div>
                             )}
                             {activeCategory !== null && (
@@ -557,7 +607,7 @@ const SalesPage: React.FC = () => {
                                             {categoryData?.find((cat) => cat.id === activeCategory)?.name}
                                         </h2>
                                         <div className={`text-xs text-gray-400`}>
-                                            <TextView text={"Click items to add to cart"}/>
+                                        <TextView text={"Click items to add to cart"}/>
                                         </div>
                                     </div>
 

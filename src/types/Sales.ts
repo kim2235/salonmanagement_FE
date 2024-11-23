@@ -14,6 +14,7 @@ export interface Sales {
 export interface SalesItems {
     id: number;
     guid?: string;
+    isGoods?: boolean;
     serviceId: number;
     salesId: number;
     name: string;

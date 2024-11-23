@@ -15,6 +15,8 @@ export interface Product {
     reorderQuantity: number;
     measurementUnit: string;
     measurementAmount: number;
+    isoverthecounter: boolean;
+    price?: number;
 }
 
 

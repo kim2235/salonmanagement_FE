@@ -99,7 +99,7 @@ const ClientSalesViewerModal: React.FC<SalesDetailsModalProps> = ({
                     <ul key={`1`} className={`list-none list-inside mb-4`}>
                         Service/Packages that this client avail:
                         {salesItems.map((service) => (
-                            <li key={service.id} className={`m-2 border border-emerald-300 p-2 ${service.isDone ? 'bg-gray-300' : ''}`}>
+                            <li key={service.id} className={`m-2 border border-emerald-300 p-2 ${service.isDone ? 'bg-gray-300 cursor-not-allowed ' : ''}`}>
                                 <div>
                                     <span className={`font-medium`}>
                                         <TextView text={`Name: `}></TextView>
@@ -107,12 +107,14 @@ const ClientSalesViewerModal: React.FC<SalesDetailsModalProps> = ({
                                     <span>
                                         <TextView text={service.name}></TextView>
                                     </span>
-                                    <span
-                                        onClick={() => !service.isDone && handleMarkAsDone(service.id, service.serviceId)} // Only trigger if not done
-                                        className={`ml-2 cursor-pointer text-blue-500 ${service.isDone ? 'text-emerald-400 cursor-not-allowed font-semibold' : ''}`}
-                                    >
-                                {service.isDone ? 'Done' : 'Mark this Done'}
-                                </span>
+                                    {!service.isGoods ? (
+                                        <span onClick={() => !service.isDone && handleMarkAsDone(service.id, service.serviceId)} // Only trigger if not done
+                                                className={`ml-2 cursor-pointer text-blue-500 ${service.isDone ? 'text-emerald-400 cursor-not-allowed font-semibold' : ''}`}
+                                                >
+                                        {service.isDone ? 'Done' : 'Mark this Done'}
+                                        </span>
+                                        ) : (null)
+                                    }
                                 </div>
                                 <div>
                                     <span className={`font-medium`}>

@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom'; // Import Link from React Router
 import styles from './Sidebar.module.css';
 
 interface SidebarItem {
@@ -32,9 +33,9 @@ const Sidebar: React.FC<SidebarProps> = ({ items, onItemClick, activeItem }) => 
                     >
                         {item.icon && <span className="mr-2">{item.icon}</span>}
                         {item.type === 'link' ? (
-                            <a href={item.href} className="flex-1">
+                            <Link to={item.href || '#'} className="flex-1">
                                 {item.label}
-                            </a>
+                            </Link>
                         ) : (
                             <span className="flex-1">{item.label}</span>
                         )}
