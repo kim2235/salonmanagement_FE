@@ -2,6 +2,7 @@ import {SelectedService, Service} from "./Service";
 
 export interface Package {
     id: number;
+    guid?: string;
     name: string;
     description : string;
     services: SelectedService[];

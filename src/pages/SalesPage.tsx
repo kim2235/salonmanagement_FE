@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { RootState, AppDispatch } from "../redux/store";
+import {RootState, AppDispatch, store} from "../redux/store";
 import TextView from "../components/TextViewComponent/TextView";
 import Button from "../components/ButtonComponent/Button";
 import ClientSidebar from "../components/Sidebars/ClientSidebarComponent/ClientSidebar";
@@ -24,12 +24,12 @@ import {Sales, SalesItems} from "../types/Sales";
 import Popover from "../components/PopoverModalComponent/Popover";
 import {Client, SelectedClient} from "../types/Client";
 
-import { v4 as uuidv4 } from 'uuid';
 import ClientSalesViewerModal from "../components/ClientSalesViewerModalComponent/ClientSalesViewerModal";
 import {generateMicrotime} from "../utilities/microTimeStamp";
 import {sidebarItems} from "./menuitems/sidebarItems";
-import {addCategory} from "../redux/slices/serviceCategorySlice";
 import {Package} from "../types/Package";
+import {selectPackageById} from "../services/packageServices";
+import {formatDate} from "../utilities/dateFormatting";
 
 
 const salesData = sales
@@ -48,9 +48,7 @@ const SalesPage: React.FC = () => {
     const [selectedClient, setSelectedClient] = useState<SelectedClient[] | null>();
     const [addSales, setSales] = useState<any>(null);
     const [salesSearch, setSalesSearch] = useState<any>(null);
-    const [activeContent, setActiveContent] = useState<React.ReactNode>(<ClientProfile />);
     const [selectedOption, setSelectedOption] = useState< string | number | boolean | null>(null);
-    const [activeItemId, setActiveItemId] = useState<string | null>('clientDetail'); // State to track active item
     const [activeIndex, setActiveIndex] = useState<number>(0);
     const [categoryData, setCategoryData] = useState<Category[]>();
     const [servicesData, setServicesData] = useState<Service[]>();
@@ -60,13 +58,13 @@ const SalesPage: React.FC = () => {
     const cartNav = ['Services', 'Packages','Products'];
     const [fade, setFade] = useState<boolean>(false);
     const [hidden, setHidden] = useState<boolean>(false);
-    const [addedServices, setAddedServices] = useState<Service[]>([]);
+
+    const [cartItems, setCartItems] = useState<SalesItems[]>([]);
     const [isClientView, setIsClientView] = useState<boolean>(false); // Tracks whether to show the empty div or the cart
     const [paymentSelected, setPaymentSelected] = useState<string | null>(null);
     const [encodedCash, setEncodedCash] = useState<string | null>(null);
-    const [saveSales, setSaveSales] = useState<Sales[]>(salesData);
+
     const [selectedSales, setSelectedSales] = useState<Sales | null>(null);
-    const [selectedServices, setSelectedServices] = useState<SalesItems[] | null>(null);
     const [notificationModalOpen, setNotificationModalOpen] = useState(false);
     const [salesViewerModalOpen, setSalesViewerModalOpen] = useState(false);
     const [isSuccess, setIsSuccess] = useState(true);
@@ -84,7 +82,10 @@ const SalesPage: React.FC = () => {
         setMessage('Transaction completed successfully!');
         setNotificationModalOpen(true);
     };
-
+    const getPackageById = (id: string) => {
+        const state = store.getState();
+        return selectPackageById(state, id);
+    };
     const showError = () => {
         setIsSuccess(false);
         setMessage('Transaction failed. Please try again.');
@@ -114,7 +115,7 @@ const SalesPage: React.FC = () => {
             return; // Exit the function if no client is selected
         }
 
-        if((Number(encodedCash) ?? 0 ) < addedServices.reduce((acc, service) => Number(acc) + Number(service.cost), 0) * 1.12){
+        if((Number(encodedCash) ?? 0 ) < cartItems.reduce((acc, service) => Number(acc) + Number(service.cost), 0) * 1.12){
             status='unpaid';
         }
         let counter = 0;
@@ -122,7 +123,7 @@ const SalesPage: React.FC = () => {
         const salesItems = {
             id: salesId,
             client: selectedClient[0],
-            services: addedServices.map((service) => ({
+            services: cartItems.map((service) => ({
                 id: Number(`${generateMicrotime()}${counter++}`),
                 serviceId: service.id,
                 salesId: salesId,
@@ -133,13 +134,13 @@ const SalesPage: React.FC = () => {
                 isDone: false,
                 appointmentColor: categoryData?.find(cat => cat.id === service.category)?.appointmentColor
             })),
-            subtotal: addedServices.reduce((acc, service) => Number(acc) + Number(service.cost), 0),
-            tax: addedServices.reduce((acc, service) => Number(acc) + Number(service.cost), 0) * 0.12,
-            total: addedServices.reduce((acc, service) => Number(acc) + Number(service.cost), 0) * 1.12,
+            subtotal: cartItems.reduce((acc, service) => Number(acc) + Number(service.cost), 0),
+            tax: cartItems.reduce((acc, service) => Number(acc) + Number(service.cost), 0) * 0.12,
+            total: cartItems.reduce((acc, service) => Number(acc) + Number(service.cost), 0) * 1.12,
             payment: paymentSelected ? encodedCash : null,
             status: status,
-            balance: (status === 'paid')? 0 : (addedServices.reduce((acc, service) => Number(acc) + Number(service.cost), 0) * 1.12) - (Number(encodedCash) ?? 0),
-            date: (new Date()).toString()
+            balance: (status === 'paid')? 0 : (cartItems.reduce((acc, service) => Number(acc) + Number(service.cost), 0) * 1.12) - (Number(encodedCash) ?? 0),
+            date: formatDate(new Date())
         };
         const newSale: Sales = {
             id: salesItems.id,
@@ -165,11 +166,10 @@ const SalesPage: React.FC = () => {
         setPayment(null);
         setFade(false);
         setSales(null);
-    };
-    useEffect(() => {
         setSelectedClient(null);
-        setAddedServices([]);
-    }, [saveSales]); // Log every time saveSales changes
+        setCartItems([])
+    };
+
     const handleCategoryClick = (id: number) => {
         setFade(true); // Start fade out
         const selectedServices = (valueService as { [key: string]: Service[] })[id.toString()] || [];
@@ -191,14 +191,39 @@ const SalesPage: React.FC = () => {
         }, 300); // Delay for fade-out effect (matches the CSS transition duration)
     };
     const handleServiceClick = (service: Service) => {
-        const newCartItem = {
-            ...service,
-            guid: generateGUID(), // Attach a unique GUID to make each entry distinct
+        const guid = generateGUID();
+        const newCartItem: SalesItems = {
+            id: service.id, // Service id
+            guid: guid,
+            serviceId: service.id, // Assuming the same id for service and serviceId
+            salesId: 0, // Adjust based on your sales logic
+            name: service.name,
+            cost: service.cost || 0,
+            category: service.category || "", // Service category
+            description: service.description || "", // Service description
+            isDone: false, // Set the default value for isDone if needed
+            appointmentColor: service.aftercareDescription || "", // You can adjust this based on your data
         };
-        setAddedServices((prevServices) => [...prevServices, newCartItem]);
 
+        setCartItems((prevItems) => [...prevItems, newCartItem]);
     };
+    const handlePackageClick = (pkg: Package) => {
+        const guid = generateGUID();
+        const newCartItem: SalesItems = {
+            id: pkg.id, // Package id
+            guid:guid,
+            serviceId: pkg.id, // Assuming the same id for package and serviceId
+            salesId: 0, // Adjust based on your sales logic
+            name: pkg.name,
+            cost: pkg.price || 0, // Use the price of the package
+            category: pkg.category || "", // Package category
+            description: pkg.description || "", // Package description
+            isDone: false, // Set the default value for isDone if needed
+            appointmentColor: pkg.aftercareDescription || "", // You can adjust this based on your data
+        };
 
+        setCartItems((prevItems) => [...prevItems, newCartItem]);
+    };
     const handleGoBack = () => {
         setFade(true); // Start fade out
         setTimeout(() => {
@@ -247,14 +272,11 @@ const SalesPage: React.FC = () => {
     const updateSalesRecord = (updatedSales: Sales) => {
 
         dispatch(addOrUpdateSale(updatedSales));
-        // Optionally, you can send a request to your API to save the updated sales
-        // e.g., axios.put(`/api/sales/${updatedSales.id}`, updatedSales)
-        //      .then(response => { /* Handle success */ })
-        //      .catch(error => { /* Handle error */ });
+
     };
 
     const handleDeleteService = (id: string) => {
-        setAddedServices((prevServices) => prevServices.filter(service => service.guid !== id));
+        setCartItems((prevServices) => prevServices.filter(service => service.guid !== id));
     };
     const generateGUID = () => {
         return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
@@ -326,22 +348,22 @@ const SalesPage: React.FC = () => {
                 </div>
                 <div className="mt-2p">
                     <div className="mt-2p flex items-center justify-start border-b border-b-gray-300">
-                        <div className="p-2 w-1/4 text-center ${styles.clientListingContentHeading}">
+                        <div className="p-2 w-1/4 text-center ">
                             <TextView text="Sale #" />
                         </div>
-                        <div className="p-2  w-1/4 text-center ${styles.clientListingContentHeading}">
+                        <div className="p-2  w-1/4 text-center ">
                             <TextView text="Client" />
                         </div>
-                        <div className="p-2 w-1/4 text-center ${styles.clientListingContentHeading}">
+                        <div className="p-2 w-1/4 text-center">
                             <TextView text="Status" />
                         </div>
-                        <div className="p-2 w-1/4 text-center ${styles.clientListingContentHeading}">
+                        <div className="p-2 w-1/4 text-center ">
                             <TextView text="Sale Date" />
                         </div>
-                        <div className="p-2 w-1/4 text-center ${styles.clientListingContentHeading}">
+                        <div className="p-2 w-1/4 text-center ">
                             <TextView text="Tips" />
                         </div>
-                        <div className="p-2 w-1/4 text-center ${styles.clientListingContentHeading}">
+                        <div className="p-2 w-1/4 text-center ">
                             <TextView text="Gross Total" />
                         </div>
                     </div>
@@ -469,42 +491,51 @@ const SalesPage: React.FC = () => {
                                             return (
                                                 <div key={id} >
                                                     {/* Render the package data, assuming 's' is an array of packages */}
-                                                    {packaging.map((service) => (
-                                                        <div key={service.id} className={`border mt-2 mb-2 p-2p rounded-md`}
-                                                             style={{borderLeftWidth: '8px',
-                                                                 borderLeftColor: 'rgb(223 198 198)'}}>
-                                                            <div className={`flex flex-row`}>
-                                                                <div className={`w-1/2`}>
-                                                                    {service.name} - {service.description}
-                                                                </div>
-                                                                <div className="w-1/2 ml-auto">
-                                                                    <div className="flex justify-end items-center">
-                                                                        <div className="mr-2">
-                                                                            PHP {service.price}
-                                                                        </div>
+                                                    {packaging.map((service) => {
+                                                        const guid = generateGUID();
+                                                         return (
+                                                             <div key={guid}
+                                                                      className={`border mt-2 mb-2 p-2p rounded-md`}
+                                                                      style={{
+                                                                          borderLeftWidth: '8px',
+                                                                          borderLeftColor: 'rgb(223 198 198)'
+                                                                      }}
+                                                             onClick={()=>{handlePackageClick(service)}}
+                                                             >
+                                                                     <div className={`flex flex-row`}>
+                                                                         <div className={`w-1/2`}>
+                                                                             {service.name} - {service.description}
+                                                                         </div>
+                                                                         <div className="w-1/2 ml-auto">
+                                                                             <div className="flex justify-end items-center">
+                                                                                 <div className="mr-2">
+                                                                                     PHP {service.price}
+                                                                                 </div>
 
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    ))}
+                                                                             </div>
+                                                                         </div>
+                                                                     </div>
+                                                             </div>
+                                                         )
+                                                    })}
                                                 </div>
                                             );
                                         }
                                     )}
 
                                     {activeIndex === 2 && products && Object.keys(products).length > 0 && Object.keys(products).map((id) => {
-                                            const packaging = products[parseInt(id)]; // Access the package by id
-                                            if (!packaging) {
-                                                return null; // or handle the undefined case
-                                            }
-                                            return (
-                                                <div key={id} >
-                                                    {/* Render the package data, assuming 's' is an array of packages */}
-                                                    {packaging.map((service) => (
-                                                        <div key={service.id} className={`border mt-2 mb-2 p-2p rounded-md`}
-                                                             style={{borderLeftWidth: '8px',
-                                                                 borderLeftColor: 'rgb(223 198 198)'}}>
+                                        const packaging = products[parseInt(id)]; // Access the package by id
+                                        if (!packaging) {
+                                            return null; // or handle the undefined case
+                                        }
+                                        return (
+                                            <div key={id}>
+                                                {/* Render the package data, assuming 's' is an array of packages */}
+                                                {packaging.map((service) => (
+                                                    <div key={service.id} className={`border mt-2 mb-2 p-2p rounded-md`}
+                                                         style={{
+                                                             borderLeftWidth: '8px',
+                                                             borderLeftColor: 'rgb(223 198 198)'}}>
                                                             <div className={`flex flex-row`}>
                                                                 <div className={`w-1/2`}>
                                                                     {service.name} - {service.description}
@@ -669,7 +700,7 @@ const SalesPage: React.FC = () => {
 
                                         <div id={`addedToCart`}
                                              className={`flex flex-col mt-10p overflow-x-auto max-h-96`}>
-                                            {addedServices.map((service, index) => (
+                                            {cartItems.map((service, index) => (
                                                 <div
                                                     key={`${service.id}-${index}`} // Ensure a unique key by combining id and index
                                                     className={`flex m-2 p-2 border border-l-4 rounded`}
@@ -680,10 +711,19 @@ const SalesPage: React.FC = () => {
                                                     }}
                                                 >
                                                     <div className={`w-full flex flex-col`}>
-                                                        <div>{service.name}</div>
-                                                        <div className={`text-xs text-gray-400`}>
+                                                        <div className={`font-semibold`}>{service.name}</div>
+                                                        <div className={`text-sm text-gray-500`}>
                                                             {service.description}
                                                         </div>
+                                                        {!service.category
+                                                            ? getPackageById(service.serviceId.toString()).map((pkg) => (
+                                                                <ul key={pkg.id}>
+                                                                    {pkg.services.map((selected) => (
+                                                                        <li key={selected.id}>{selected.name}</li>
+                                                                    ))}
+                                                                </ul>
+                                                            ))
+                                                            : ''}
                                                     </div>
                                                     <div className={`w-1/4 flex-auto items-baseline text-right`}>
                                                         <div>&#8369; {service.cost}</div>
@@ -700,18 +740,18 @@ const SalesPage: React.FC = () => {
                                             <div className={`w-full flex flex-col items-start`}>
                                                 {/* Subtotal */}
                                                 <div className={`mb-2`}>
-                                                    Subtotal: &#8369; {addedServices.reduce((acc, service) => Number(acc) + Number(service.cost), 0).toLocaleString()}
+                                                    Subtotal: &#8369; {cartItems.reduce((acc, service) => Number(acc) + Number(service.cost), 0).toLocaleString()}
                                                 </div>
 
                                                 {/* Tax (Assuming 12% VAT) */}
                                                 <div className={`mb-2`}>
                                                     Tax
-                                                    (12%): &#8369; {(addedServices.reduce((acc, service) => Number(acc) + Number(service.cost), 0) * 0.12).toLocaleString()}
+                                                    (12%): &#8369; {(cartItems.reduce((acc, service) => Number(acc) + Number(service.cost), 0) * 0.12).toLocaleString()}
                                                 </div>
 
                                                 {/* Total (Subtotal + Tax) */}
                                                 <div className={`font-bold`}>
-                                                    Total: &#8369; {(addedServices.reduce((acc, service) => Number(acc) + Number(service.cost), 0) * 1.12).toLocaleString()}
+                                                    Total: &#8369; {(cartItems.reduce((acc, service) => Number(acc) + Number(service.cost), 0) * 1.12).toLocaleString()}
                                                 </div>
                                                 {paymentSelected ? (
                                                     <div className={`flex font-bold`}>

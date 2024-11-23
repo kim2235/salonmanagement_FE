@@ -36,5 +36,4 @@ const packageSlice = createSlice({
 });
 
 export const { addOrUpdatePackage } = packageSlice.actions;
-export const selectPackageById = (state: RootState, id: string) => state.packages.valuePackage[id] || [];
 export default packageSlice.reducer;

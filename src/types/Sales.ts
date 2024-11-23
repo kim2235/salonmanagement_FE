@@ -13,6 +13,7 @@ export interface Sales {
 
 export interface SalesItems {
     id: number;
+    guid?: string;
     serviceId: number;
     salesId: number;
     name: string;
@@ -22,3 +23,5 @@ export interface SalesItems {
     isDone?: boolean;
     appointmentColor:  string | undefined;
 }
+
+

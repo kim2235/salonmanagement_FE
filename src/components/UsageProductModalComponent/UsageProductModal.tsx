@@ -5,7 +5,7 @@ import { RootState } from "../../redux/store";
 import TextView from "../TextViewComponent/TextView";
 import InputText from "../InputTextComponent/InputText";
 
-import { getServicesByProductId } from "../../redux/slices/serviceSlice";
+import {getServicesByProductId} from "../../services/getServicesByProductId";
 import { selectSalesItemsByProductId } from "../../redux/slices/salesItemsSlice";
 
 interface AddProductModalProps {

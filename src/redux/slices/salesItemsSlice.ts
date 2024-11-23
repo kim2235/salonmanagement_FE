@@ -2,7 +2,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { RootState } from '../store';
 import { SalesItems } from '../../types/Sales';
 import { createSelector } from 'reselect';
-import {getServicesByProductId} from "./serviceSlice";
+import {getServicesByProductId} from '../../services/getServicesByProductId'
 
 interface SalesItemsState {
     valueSalesItems: { [key: number]: SalesItems[] };
@@ -24,7 +24,7 @@ export const selectSalesItemsByProductId = createSelector(
         // Step 1: Get services associated with the given product ID
         const servicesWithProduct = getServicesByProductId({ services: { valueService } } as RootState, productId);
 
-        // Step 2: Collect all service IDs associated with this product
+        // Step 2: Collect all service IDs associated with this products
         const serviceIds = servicesWithProduct.map(service => service.id);
 
         // Step 3: Find all sales items where `serviceId` matches any of the IDs in `serviceIds`

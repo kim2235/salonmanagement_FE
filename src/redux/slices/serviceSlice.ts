@@ -45,17 +45,6 @@ export const selectServiceById = (state: RootState, serviceId: string) => {
     return null; // Return null if service not found
 };
 
-export const getServicesByProductId = createSelector(
-    (state: RootState, productId: number) => productId, // Input selector for productId
-    (state: RootState) => state.services.valueService, // Input selector for services state
-    (productId, valueService) => {
-        // Logic to filter services by productId
-        const allServices = Object.values(valueService).flat();
-        return allServices.filter(service =>
-            service.serviceProductUsed?.some((product: ServiceProductUsed) => product.id === productId)
-        );
-    }
-);
 
 export const selectServicesByProductId = (state: RootState, productId: number): Service[] => {
     const allServices = Object.values(state.services.valueService).flat();
