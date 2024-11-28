@@ -108,9 +108,6 @@ const ClientListPage: React.FC = () => {
                     setActiveContent(<ClientNote clientsNotes={clientsNotes} />);
                     break;
             }
-        } else if (type === 'link') {
-            // For links, you might not need to do anything, as the browser handles the navigation
-            // If needed, you can add additional logic here
         }
     };
     const sidebarItemsWithActive = modalSidebarItems.map((item) => ({

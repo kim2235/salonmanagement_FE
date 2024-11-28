@@ -7,13 +7,14 @@ import packageReducer from './slices/packageSlice';
 import productReducer from './slices/productSlice';
 import salesReducer from './slices/salesSlice';
 import salesItemReducer from './slices/salesItemsSlice';
+import clientsReducer from './slices/clientSlice';
 import {persistReducer, persistStore} from "redux-persist";
 
 
 const persistConfig = {
     key: 'root', // Key for the root storage
     storage,     // Use `localStorage` for persistence
-    whitelist: ['products','packages','productCategories','services','serviceCategories', 'sales', 'salesItems'],
+    whitelist: ['products','packages','productCategories','services','serviceCategories', 'sales', 'salesItems', 'clients'],
 };
 
 const rootReducer = combineReducers({
@@ -23,7 +24,8 @@ const rootReducer = combineReducers({
     packages: packageReducer,
     products: productReducer,
     sales: salesReducer,
-    salesItems: salesItemReducer
+    salesItems: salesItemReducer,
+    clients: clientsReducer
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

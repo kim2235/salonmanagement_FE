@@ -3,14 +3,23 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import styles from './GetDatePicker.module.css';
 import { FaCalendarAlt } from 'react-icons/fa';
-const GetDatePicker: React.FC = () => {
+
+
+interface GetDatePickerProps {
+    onDateChange: (date: Date | null) => void;
+}
+const GetDatePicker: React.FC<GetDatePickerProps> = ({ onDateChange }) => {
     const [startDate, setStartDate] = useState<Date | null>(null);
 
+    const handleChange = (date: Date | null) => {
+        setStartDate(date);
+        onDateChange(date); // Propagate the change to the parent
+    };
     return (
         <div className="relative">
             <DatePicker
                 selected={startDate}
-                onChange={(date: Date | null) => setStartDate(date)}
+                onChange={handleChange}
                 className={`${styles.datePicker} customDatePicker border p-2  shadow-md `}
                 popperClassName="react-datepicker-popper"
                 showYearDropdown

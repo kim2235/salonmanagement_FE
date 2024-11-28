@@ -20,6 +20,9 @@
     transition: background-color 70ms cubic-bezier(.2, 0, .38, .9), outline 70ms cubic-bezier(.2, 0, .38, .9);
 }
 
+.override_width {
+    width: auto !important;
+}
 .select:focus {
     outline: 2px solid #52a46f; /* Match InputText */
     outline-offset: -2px; /* Match InputText */

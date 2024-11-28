@@ -1,8 +1,9 @@
 export interface Client {
-    id: string;
+    id: string ;
     firstName: string;
     lastName: string;
     email: string;
+    areaCode?: string;
     contactNumber: string;
     birthday: string;  // You may want to adjust this to a Date type if handling dates.
     gender: string;  // Assuming these are the only valid options for gender.
@@ -10,7 +11,8 @@ export interface Client {
     address: string;
     city: string;
     province: string;
-    zipcode: string;
+    zipcode?: string;
+    countryCode?: string;
     created_at?: string;
 }
 
@@ -19,6 +21,7 @@ export interface ClientProfileProps {
         firstName: string;
         lastName: string;
         email: string;
+        areaCode: string;
         contactNumber: string;
         gender: string;
         clientSource: string;
