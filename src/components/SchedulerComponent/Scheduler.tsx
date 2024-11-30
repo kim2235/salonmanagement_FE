@@ -7,7 +7,8 @@ import EventModal from "../EventModalComponent/EventModal";
 import { DateSelectArg, EventClickArg } from '@fullcalendar/core';
 import {Client} from "../../types/Client";
 import '@fullcalendar/common/main.css';
-import clientList from "../../testData/clientList.json";
+import { useDispatch, useSelector } from 'react-redux';
+import {RootState, AppDispatch, store} from "../../redux/store";
 
 export interface CalendarEvent {
     id: string;
@@ -34,7 +35,8 @@ const Scheduler: React.FC<SchedulerProps> = ({ onReservationSelect, eventsPlot }
     const [selectedDateRange, setSelectedDateRange] = useState<{ start: Date, end: Date } | null>(null);
     const [tentativeEvent, setTentativeEvent] = useState<CalendarEvent | null>(null);
     const [clientListing, setClientListing] = useState<Client[] | null>([]);
-
+    const dispatch = useDispatch<AppDispatch>();
+    const clients = useSelector((state: RootState) => state.clients.valueClients);
     useEffect(() => {
         // Fallback to an empty array if eventsPlot is undefined
         setEvents(eventsPlot || []);
@@ -55,7 +57,7 @@ const Scheduler: React.FC<SchedulerProps> = ({ onReservationSelect, eventsPlot }
             clientID: clickInfo.event.extendedProps.clientID  ? clickInfo.event.extendedProps.clientID  : '',
             backgroundColor: clickInfo.event.extendedProps.selectedBackgroundColor  ? clickInfo.event.extendedProps.selectedBackgroundColor  : '',
         };
-        setClientListing(clientList);
+        setClientListing(Object.values(clients));
         setSelectedEvent(clickedEvent); // Set the selected event for editing
         setIsModalOpen(true); // Open the modal for editing
         setTentativeEvent(null); // Ensure there's no tentative event when editing
@@ -70,7 +72,7 @@ const Scheduler: React.FC<SchedulerProps> = ({ onReservationSelect, eventsPlot }
             end: selectInfo.end,
         };
 
-        setClientListing(clientList);
+        setClientListing(Object.values(clients));
         setSelectedDateRange({ start: selectInfo.start, end: selectInfo.end });
         setTentativeEvent(newTentativeEvent); // Show the tentative event on the calendar
         setIsModalOpen(true); // Open the modal for creating a new event

@@ -4,24 +4,21 @@ import {RootState} from "../redux/store";
 import {useAppDispatch} from "../hook";
 import {addOrUpdateClient} from "../redux/slices/clientSlice";
 import styles from './styles/ClientStyle.module.css';
-import { FaBars, FaArrowLeft, FaCamera } from 'react-icons/fa';
+import { FaBars, FaArrowLeft } from 'react-icons/fa';
 import TextView from '../components/TextViewComponent/TextView';
 import ClientSidebar from '../components/Sidebars/ClientSidebarComponent/ClientSidebar';
 import Button from '../components/ButtonComponent/Button';
 import { useNavigate } from 'react-router-dom';
-import { allCountries } from 'country-telephone-data';
-import countries from '../data/country.json';
 import {sidebarItems} from "./menuitems/sidebarItems";
 import ClientForm from "../components/ClientFormComponent/ClientForm";
 import {Client} from "../types/Client";
+
 
 const AddNewClientPage: React.FC = () => {
     const navigate = useNavigate();
     const dispatch = useAppDispatch();
     const [activeItem, setActiveItem] = useState<string | null>('clientlist');
-    const [selectedOption, setSelectedOption] = useState< string | number | boolean | null>(null);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-
     const clients = useSelector((state: RootState) => state.clients.valueClients);
 
     const handleItemClick = (id: string, type: 'link' | 'div') => {
@@ -36,13 +33,14 @@ const AddNewClientPage: React.FC = () => {
     };
 
 
-    console.log(clients)
+
     const handleClick = () => {
          navigate('/clientlist');
     };
 
 
     const saveFormData = (data: Client ) => {
+
         dispatch(addOrUpdateClient(data));
     };
 

@@ -1,4 +1,7 @@
 import React, { useState } from 'react';
+import { useSelector } from 'react-redux';
+import {RootState} from "../redux/store";
+import {Client} from "../types/Client";
 import TextView from "../components/TextViewComponent/TextView";
 import Button from "../components/ButtonComponent/Button";
 import ClientSidebar from "../components/Sidebars/ClientSidebarComponent/ClientSidebar";
@@ -13,10 +16,10 @@ import { FaPlus, FaBars } from 'react-icons/fa';
 import ClientProfile from "../components/SubClientComponent/ClientProfile";
 import ClientDocument from "../components/SubClientDocumentComponent/ClientDocument";
 import ClientNote from "../components/subClientNoteComponent/ClientNote";
-import clientList from "../testData/clientList.json";
+
 import {sidebarItems} from "./menuitems/sidebarItems";
 import {SidebarItem} from "./menuitems/sidebarItems";
-const clients = clientList;
+
 
 const clientsDocs = [
     { id: '11111111', name: "John Doe Waiver", created_at: "2024-01-01", pdfUrl: "/temp/sample.pdf" },
@@ -33,6 +36,7 @@ const clientsNotes = [
 
 const ClientListPage: React.FC = () => {
     const navigate = useNavigate();
+    const clients = useSelector((state: RootState) => state.clients.valueClients);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [isChecked, setIsChecked] = useState(false);
     const [currentPage, setCurrentPage] = useState(0);
@@ -67,11 +71,9 @@ const ClientListPage: React.FC = () => {
     };
 
     const handleClientClick = (client: any) => {
-        console.log("Client clicked:", client);
         setSelectedClient(client);
-        setActiveItemId(client.id);  // Optionally set the clicked client as the active item
-        console.log(activeItemId)
-        // Set the client profile in the content area with the selected client data
+        setActiveItemId(client.id);
+
         setActiveContent(
             <ClientProfile
                 clientData={client}
@@ -96,10 +98,11 @@ const ClientListPage: React.FC = () => {
     ];
     const handleSubItemClick =  (id: string, type: 'link' | 'div') => {
         setActiveItemId(id);
+
         if (type === 'div') {
             switch (id) {
                 case 'clientDetail':
-                    setActiveContent(<ClientProfile />);
+                    setActiveContent(<ClientProfile clientData={selectedClient} />);
                     break;
                 case 'documents':
                     setActiveContent(<ClientDocument clientsDocs={clientsDocs} />);
@@ -115,7 +118,7 @@ const ClientListPage: React.FC = () => {
         active: item.id === activeItemId, // Mark as active if id matches the activeItemId
     }));
 
-    const displayedClients = clients.slice(currentPage * clientsPerPage, (currentPage + 1) * clientsPerPage);
+    const displayedClients = Object.values(clients).slice(currentPage * clientsPerPage, (currentPage + 1) * clientsPerPage);
 
     const handleOptionSelect = (option:  string | number | boolean) => {
         setSelectedOption(option);
@@ -145,7 +148,7 @@ const ClientListPage: React.FC = () => {
                             </div>
                             <div className="flex items-center">
                                 <span className="inline-flex items-center px-3 py-1 text-sm font-medium text-black border border-black bg-transparent rounded-full">
-                                    {clients.length}
+                                    {Object.values(clients).length}
                                 </span>
                             </div>
                         </div>
@@ -189,7 +192,7 @@ const ClientListPage: React.FC = () => {
                         </div>
                     </div>
                     <div id="clientListContent">
-                        {displayedClients.map((client, index) => (
+                        {Object.values(displayedClients).map((client, index) => (
                             <div key={index} onClick={() => handleClientClick(client)} className="mt-2p flex items-center justify-start border-b pb-2 border-b-gray-300 cursor-pointer">
                                 <div className="p-2 w-12 flex-shrink-0 pl-4">
                                     <Checkbox id={`selectClient-${index}`} checked={isChecked} onChange={handleCheckboxChange} value="testValue" size="20px" />
@@ -229,7 +232,7 @@ const ClientListPage: React.FC = () => {
                     nextLabel={"Next"}
                     breakLabel={"..."}
                     breakClassName={"break-me"}
-                    pageCount={Math.ceil(clients.length / clientsPerPage)}
+                    pageCount={Math.ceil(Object.values(clients).length/ clientsPerPage)}
                     marginPagesDisplayed={2}
                     pageRangeDisplayed={5}
                     onPageChange={handlePageClick}
@@ -245,7 +248,7 @@ const ClientListPage: React.FC = () => {
                                     <div className={`text-center`}>
                                         <Avatar name={'John Doe'} size="155px"/>
                                         <div className={`mt-2 ${styles.clientContentName}`}>
-                                            <TextView text={'John Doe'}/>
+                                            <TextView text={selectedClient.firstName + ' ' + selectedClient.lastName}/>
                                         </div>
                                     </div>
                                     <div className="m-4 flex w-1/6 space-x-4">

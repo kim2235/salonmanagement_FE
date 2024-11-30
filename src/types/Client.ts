@@ -18,6 +18,7 @@ export interface Client {
 
 export interface ClientProfileProps {
     clientData?: {
+        birthday: string;
         firstName: string;
         lastName: string;
         email: string;
@@ -28,7 +29,7 @@ export interface ClientProfileProps {
         address: string;
         city: string;
         province: string;
-        zip: string;
+        zipcode: string;
         countryCode: string;
     };
     onClientUpdate?: (updatedClientData: any) => void;

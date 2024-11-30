@@ -16,7 +16,6 @@ import ClientProfile from "../components/SubClientComponent/ClientProfile";
 import sales from "../testData/sales.json";
 import {addOrUpdateSale} from "../redux/slices/salesSlice";
 import {addOrUpdateSalesItem} from "../redux/slices/salesItemsSlice";
-import clientList from "../testData/clientList.json";
 import {Category} from "../types/Category";
 import NotificationModal from "../components/NotificationModalComponent/NotificationModal"
 import {Service} from "../types/Service";
@@ -43,6 +42,7 @@ const SalesPage: React.FC = () => {
     const packages = useSelector((state:RootState) => state.packages.valuePackage);
     const products = useSelector((state:RootState) => state.products.valueProduct);
     const categories = useSelector((state: RootState) => state.serviceCategories.categories);
+    const clients = useSelector((state: RootState) => state.clients.valueClients);
 
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [currentPage, setCurrentPage] = useState(0);
@@ -703,7 +703,7 @@ const SalesPage: React.FC = () => {
                                         </div>
                                         <div
                                             className="flex flex-col text-gray-500  mb-4 overflow-x-auto max-h-full w-full">
-                                            {clientList.map((client) => (
+                                            {Object.values(clients).map((client) => (
                                                 <div key={client.id}
                                                     className={`m-2p border border-gray-300 border-4 hover:border-green-600 rounded p-5p cursor-pointer`}
                                                      onClick={() => handleSelectClientClick(client)}
