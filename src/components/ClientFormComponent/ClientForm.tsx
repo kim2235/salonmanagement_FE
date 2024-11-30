@@ -12,6 +12,7 @@ import Button from "../ButtonComponent/Button";
 import { allCountries } from 'country-telephone-data';
 import {Client} from "../../types/Client";
 import NotificationModal from "../NotificationModalComponent/NotificationModal";
+import {generateMicrotime} from "../../utilities/microTimeStamp";
 
 interface ClientFormProps {
     id?: string | number;
@@ -50,7 +51,7 @@ const ClientForm: React.FC<ClientFormProps> = ({ id, existingFormData, saveData 
 
 
     const [formData, setFormData] = useState<Client>({
-        id: '0',
+        id: generateMicrotime().toString(),
         firstName: '',
         lastName: '',
         email: '',
@@ -117,7 +118,7 @@ const ClientForm: React.FC<ClientFormProps> = ({ id, existingFormData, saveData 
             );
             return;
         }
-
+        setFormData((prev) => ({...prev, id: generateMicrotime().toString()}))
         saveData(formData);
     };
 
