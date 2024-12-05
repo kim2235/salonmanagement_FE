@@ -16,6 +16,7 @@ import ClientProfile from "../components/SubClientComponent/ClientProfile";
 import sales from "../testData/sales.json";
 import {addOrUpdateSale} from "../redux/slices/salesSlice";
 import {addOrUpdateSalesItem} from "../redux/slices/salesItemsSlice";
+import clientList from "../testData/clientList.json";
 import {Category} from "../types/Category";
 import NotificationModal from "../components/NotificationModalComponent/NotificationModal"
 import {Service} from "../types/Service";
@@ -43,7 +44,6 @@ const SalesPage: React.FC = () => {
     const products = useSelector((state:RootState) => state.products.valueProduct);
     const categories = useSelector((state: RootState) => state.serviceCategories.categories);
     const clients = useSelector((state: RootState) => state.clients.valueClients);
-
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [currentPage, setCurrentPage] = useState(0);
     const [selectedClient, setSelectedClient] = useState<SelectedClient[] | null>();
@@ -692,7 +692,7 @@ const SalesPage: React.FC = () => {
                                 {/* Conditional rendering based on whether Add Client button was clicked */}
                                 {isClientView ? (
                                     // Empty Div (after clicking Add Client)
-                                    <div className="flex flex-col justify-center items-center h-full m-2p">
+                                    <div className="flex flex-col items-center h-full m-2p">
                                         <div className="mt-5p w-full mb-2p">
                                             <InputText
                                                 type="text"

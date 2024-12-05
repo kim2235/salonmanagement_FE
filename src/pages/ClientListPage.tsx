@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useSelector } from 'react-redux';
 import {RootState} from "../redux/store";
-import {Client} from "../types/Client";
 import TextView from "../components/TextViewComponent/TextView";
 import Button from "../components/ButtonComponent/Button";
 import ClientSidebar from "../components/Sidebars/ClientSidebarComponent/ClientSidebar";
@@ -98,7 +97,7 @@ const ClientListPage: React.FC = () => {
     ];
     const handleSubItemClick =  (id: string, type: 'link' | 'div') => {
         setActiveItemId(id);
-
+        console.log(selectedClient.id);
         if (type === 'div') {
             switch (id) {
                 case 'clientDetail':
@@ -108,7 +107,7 @@ const ClientListPage: React.FC = () => {
                     setActiveContent(<ClientDocument clientsDocs={clientsDocs} />);
                     break;
                 default:
-                    setActiveContent(<ClientNote clientsNotes={clientsNotes} />);
+                    setActiveContent(<ClientNote clientsNotes={clientsNotes} clientId={selectedClient.id}/>);
                     break;
             }
         }

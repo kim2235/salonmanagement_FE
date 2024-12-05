@@ -8,13 +8,15 @@ import productReducer from './slices/productSlice';
 import salesReducer from './slices/salesSlice';
 import salesItemReducer from './slices/salesItemsSlice';
 import clientsReducer from './slices/clientSlice';
+import notesReducer from './slices/notesSlice';
 import {persistReducer, persistStore} from "redux-persist";
 
 
 const persistConfig = {
     key: 'root', // Key for the root storage
     storage,     // Use `localStorage` for persistence
-    whitelist: ['products','packages','productCategories','services','serviceCategories', 'sales', 'salesItems', 'clients'],
+    whitelist: ['products','packages','productCategories','services',
+        'serviceCategories', 'sales', 'salesItems', 'clients', 'notes'],
 };
 
 const rootReducer = combineReducers({
@@ -25,7 +27,8 @@ const rootReducer = combineReducers({
     products: productReducer,
     sales: salesReducer,
     salesItems: salesItemReducer,
-    clients: clientsReducer
+    clients: clientsReducer,
+    notes: notesReducer
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
@@ -37,7 +40,7 @@ export const store = configureStore({
         }),
 });
 
-// Step 4: Export `persistor` for use in `PersistGate`
+// Export `persistor` for use in `PersistGate`
 export const persistor = persistStore(store);
 
 // Types for TypeScript users

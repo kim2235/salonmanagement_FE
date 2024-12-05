@@ -1,12 +1,17 @@
 import React, {useState} from "react";
+import { useSelector } from 'react-redux';
+import {RootState} from "../../redux/store";
+import {Notes} from "../../types/Notes";
+import {useAppDispatch} from "../../hook";
 import InputText from "../InputTextComponent/InputText";
 import Button from "../ButtonComponent/Button";
 import {FaPlus,FaCross} from "react-icons/fa";
 import {useNavigate} from "react-router-dom";
 import TextView from "../TextViewComponent/TextView";
 import FreeTextViewer from "../PdfViewerComponent/FreeTextViewer";
-import UploadModal from "../UploadModalComponent/UploadModal";
 import FreetextModal from "../FreetextModalComponent/UploadModal";
+import {generateMicrotime} from "../../utilities/microTimeStamp";
+import {addOrUpdateNote} from "../../redux/slices/notesSlice";
 interface ClientNote {
     id: string;
     name: string;
@@ -15,22 +20,27 @@ interface ClientNote {
 }
 interface ClientNotesProps {
      clientsNotes: ClientNote[];
+     clientId: string;
 }
 
-const ClientNote:  React.FC<ClientNotesProps> = ({ clientsNotes })=> {
+const ClientNote:  React.FC<ClientNotesProps> = ({ clientsNotes,clientId })=> {
     const navigate = useNavigate();
+    const dispatch = useAppDispatch();
+    const [formData, setFormData] = useState<Notes>({
+        id: generateMicrotime().toString(),
+        userId: clientId,
+        note: '',
+        created_at:new Date().toISOString()
+    })
+    const notes = useSelector((state: RootState) => state.notes.valueNotes);
+
     const [currentPage, setCurrentPage] = useState(0);
     const clientsPerPage = 10;
     const displayedClientDocs = clientsNotes.slice(currentPage * clientsPerPage, (currentPage + 1) * clientsPerPage);
     const [selectedNote, setSelectedNote] = useState<string | null>(null);
-    const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+    const [isNotesModalOpen, setIsNotesModalOpen] = useState(false);
     const handleClick = () => {
-        setIsUploadModalOpen(true);
-    };
-    const handleUpload = (file: File) => {
-        // Handle file upload logic here
-        console.log("Uploaded file:", file);
-        setIsUploadModalOpen(false);
+        setIsNotesModalOpen(true);
     };
     const handleItemClick = (note: string) => {
         setSelectedNote(note);
@@ -39,10 +49,11 @@ const ClientNote:  React.FC<ClientNotesProps> = ({ clientsNotes })=> {
     const handleClosePDF = () => {
         setSelectedNote(null);
     };
-
-    const handleSave = (text: string) => {
-        console.log('Saved text:', text);
-        // Perform any further actions like saving the text to a server or updating state
+    console.log(notes)
+    const handleSave = async (text: string) => {
+        const updatedFormData = { ...formData, note: text }; // Create updated data
+        setFormData(updatedFormData); // Update state
+        dispatch(addOrUpdateNote(updatedFormData)); // Dispatch with the updated data
     };
     return( <div id={`clientDocument`}>
         <div className="flex flex-wrap w-full">
@@ -100,7 +111,7 @@ const ClientNote:  React.FC<ClientNotesProps> = ({ clientsNotes })=> {
             {/* PDF Viewer Modal */}
             {selectedNote && <FreeTextViewer note={selectedNote} onClose={handleClosePDF} />}
             {/* Upload Modal */}
-            {isUploadModalOpen && <FreetextModal onSave={handleSave} onClose={() => setIsUploadModalOpen(false)}/> }
+            {isNotesModalOpen && <FreetextModal onSave={handleSave} onClose={() => setIsNotesModalOpen(false)}/> }
 
         </div>
     );
